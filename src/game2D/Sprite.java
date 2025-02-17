@@ -471,6 +471,19 @@ public class Sprite {
         }
         return "STATIONARY";
     }
+    private boolean active = true; // New flag to track if the Sprite exists
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void deactivate() {
+
+        active = false;
+    }
+    public void activate() {
+        active = true;
+    }
     
 
 }

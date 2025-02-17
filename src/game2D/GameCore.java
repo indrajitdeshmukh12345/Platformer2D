@@ -3,6 +3,8 @@ package game2D;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.*;
@@ -14,7 +16,7 @@ import javax.swing.*;
  * Core Game class that implements default game loop. Subclasses should
  * implement the draw() method and override the update method.
 */
-public abstract class GameCore extends JFrame implements KeyListener {
+public abstract class GameCore extends JFrame implements KeyListener, MouseListener {
 
 	private static final long serialVersionUID = 1L;
 	protected static final int FONT_SIZE = 12;
@@ -90,6 +92,7 @@ public abstract class GameCore extends JFrame implements KeyListener {
 
         
         addKeyListener(this);
+        addMouseListener(this);
         setFont(new Font("Dialog", Font.PLAIN, FONT_SIZE));
     }
     
@@ -186,6 +189,30 @@ public abstract class GameCore extends JFrame implements KeyListener {
      * override this in your game class to do something useful.
      */
     public void update(long elapsedTime) { /* do nothing  */ }
+
+    public void mouseClicked(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
+    }
 
 
     /** 
