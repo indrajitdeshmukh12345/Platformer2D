@@ -460,13 +460,15 @@ public class Game extends GameCore
         checkTileCollision(player, tmap);
         checkTileCollisionNPC2(villan,tmap);
         checkProjectileCollision(projectile,tmap);
-        if (projectile.isActive()&&boundingBoxCollision(projectile,villan)){
+        //if projectile hits villan
+        if (projectile.isActive()&&boundingBoxCollision(projectile,villan)&&villan.isActive()){
             projectile.deactivate();
             villan.setAnimation(Villandeath);
             timer.schedule(new java.util.TimerTask() {
                 @Override
                 public void run() {
                     villan.deactivate();
+
 
                 }
             }, 750);
@@ -733,7 +735,7 @@ public class Game extends GameCore
                 player.setPosition(player.getX()+80, player.getY());
             }
         }
-        if (e.getButton() == MouseEvent.BUTTON1) { // Right mouse button
+        if (e.getButton() == MouseEvent.BUTTON1&&!projectile.isActive()) { // Right mouse button
             // System.out.println("Right mouse button clicked!");
             shoot = true;
             projectile.setPosition(player.getX(),player.getY());
