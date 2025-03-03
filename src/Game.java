@@ -39,7 +39,7 @@ public class Game extends GameCore
     float	fly = -0.06f;
     float	moveSpeed = 0.05f;
 
-    float projectileSpeed = 0.2f;
+    float projectileSpeed = 0.5f;
     
     // Game state flags
     boolean flap = false;
@@ -61,11 +61,13 @@ public class Game extends GameCore
     Animation marinedash;
     Animation marinewake;
     Animation marineshoot;
+    Animation marinedamage;
     Animation vilanrun;
     Animation vilanattack;
     Animation Projectile;
     Animation Villandeath;
     Animation Pully;
+    Animation Spikes;
 
 
 
@@ -82,8 +84,13 @@ public class Game extends GameCore
     Sprite villan = null;
     Sprite projectile = null;
     Sprite pully = null;
+    Sprite spike = null;
     ArrayList<Sprite> 	clouds = new ArrayList<Sprite>();
     ArrayList<Tile>		collidedTiles = new ArrayList<Tile>();
+    // Add a cooldown variable
+    private long lastDamageTime = 0;
+    private long damageCooldown = 2000; // 1 second cooldown
+    private boolean isgettingDamaged = false;
 
 
     TileMap tmap = new TileMap();	// Our tile map, note that we load it in init()
@@ -137,7 +144,7 @@ public class Game extends GameCore
         marinestanding.loadAnimationFromSheet("images/static idle.png",1,1,150);
 
         marinedie =new Animation();
-        marinedie.loadAnimationFromSheet("images/marinedead.png",7,1,150);
+        marinedie.loadAnimationFromSheet("images/deathPlayer.png",1,6,150);
 
         marinedash = new Animation();
         marinedash.loadAnimationFromSheet("images/GAS dash with FX.png",1,7,110);
@@ -147,16 +154,24 @@ public class Game extends GameCore
 
         marineshoot = new Animation();
         marineshoot.loadAnimationFromSheet("images/shoot with FX.png",1,4,150);
+        marinedamage = new Animation();
+        marinedamage.loadAnimationFromSheet("images/damaged.png",1,2,150);
 
         vilanrun = new Animation();
         vilanrun.loadAnimationFromSheet("images/run.png",1,8,150);
         Villandeath = new Animation();
         Villandeath.loadAnimationFromSheet("images/death.png",1,5,150);
+        vilanattack = new Animation();
+        vilanattack.loadAnimationFromSheet("images/attack.png",1,4,150);
+
         Projectile = new Animation();
         Image animProjec = new ImageIcon("images/Projectile.png").getImage();
         Projectile.addFrame(animProjec,150);
         Pully = new Animation();
-        Pully.loadAnimationFromSheet("images/Pully.png");
+        Pully.loadAnimationFromSheet("images/Pully.png",3,1,300);
+        Spikes = new Animation();
+        Image animSpike = new ImageIcon("maps/tile_0068.png").getImage();
+        Spikes.addFrame(animSpike,150);
 
         
         // Initialise the player with an animation
@@ -165,6 +180,10 @@ public class Game extends GameCore
         villan = new Sprite(vilanrun);
         //initialise the projectile with an animation
         projectile=new Sprite(Projectile);
+        // initialise the pully with animation
+        pully=new Sprite(Pully);
+        spike = new Sprite(Spikes);
+
         
         // Load a single cloud animation
         Animation ca = new Animation();
@@ -264,6 +283,13 @@ public class Game extends GameCore
         projectile.setScale(0.5f);
         projectile.deactivate();
         projectile.show();
+        pully.setPosition(500,150);
+        pully.setAnimation(Pully);
+        pully.show();
+        spike.setPosition(230,217);
+        spike.setAnimation(Spikes);
+        spike.show();
+
 
 
     }
@@ -311,10 +337,17 @@ public class Game extends GameCore
 
         // Apply offsets to tile map and draw  it
         tmap.draw(g,xo,yo);
+        pully.setOffsets(xo,yo);
+        pully.draw(g);
+        spike.setOffsets(xo,yo);
+
 
         villan.setOffsets(xo,yo);
         if(villan.isActive()){
             villan.drawTransformed(g);
+        }
+        if(spike.isActive()){
+            spike.draw(g);
         }
 
 
@@ -392,20 +425,45 @@ public class Game extends GameCore
         if(projectile.getY()>screenHeight){projectile.deactivate();}
         if(projectile.getX()>screenWidth){projectile.deactivate();}
 
-
+        if(player.getHealth()<=0){dead= true;}
 
        	player.setAnimationSpeed(1.0f);
+        long currentTime = System.currentTimeMillis();
+        //if villan hits player
+        if(villan.isActive()&&boundingBoxCollision(player,villan)){
+            //long currentTime = System.currentTimeMillis();
+            if (currentTime - lastDamageTime > damageCooldown) {
+                villan.setAnimation(vilanattack);
+                player.setAnimation(marinedamage);
+                player.setHealth(player.getHealth() - 35);
+                lastDamageTime = currentTime; // Update the last damage time
+                isgettingDamaged=true;
+            }
+           else {
+                isgettingDamaged = false;
+                villan.setAnimation(vilanrun);
+            }
 
-        if(ideal){
+
+        }
+
+        if(ideal&&isgettingDamaged==false){
             player.setAnimation(marinestanding);
         }
 
        	if(dead){
             player.setAnimation(marinedie);
+            timer.schedule(new java.util.TimerTask() {
+                @Override
+                public void run() {
+                    stop();
+
+                }
+            }, 700);
         }
 
 
-       	if (flap) 
+       	if (flap&&isgettingDamaged==false)
        	{
             if(collision) {
                 player.setVelocityY(fly);
@@ -429,12 +487,12 @@ public class Game extends GameCore
             }
          }
 
-        if (moveRight && !moveLeft) {
+        if (moveRight && !moveLeft && isgettingDamaged==false) {
             player.setVelocityX(moveSpeed);
             player.setScale(1.0f, 1f);
             player.setAnimation(marinerun);
         }
-        else if (moveLeft && !moveRight) {
+        else if (moveLeft && !moveRight && isgettingDamaged==false) {
             player.setVelocityX(-moveSpeed);
             player.setScale(-1.0f, 1f);
             player.setAnimation(marinerun);
@@ -452,6 +510,7 @@ public class Game extends GameCore
         // Now update the sprites animation and position
         player.update(elapsed);
         villan.update(elapsed);
+
         projectile.update(elapsed);
 
         Background1.setVelocityX(-player.getVelocityX()*0.05f);
@@ -474,8 +533,14 @@ public class Game extends GameCore
         checkTileCollision(player, tmap);
         checkTileCollisionNPC2(villan,tmap);
         checkProjectileCollision(projectile,tmap);
-        //if villan hits player
-        if(villan.isActive()&&boundingBoxCollision(player,villan)){
+
+        if (boundingBoxCollision(player,pully)){
+            pully.activate();
+            pully.update(elapsed);
+            spike.deactivate();
+        }
+        // player hit spike
+        if(spike.isActive()&&boundingBoxCollision(player,spike)){
             player.setHealth(0);
         }
 
