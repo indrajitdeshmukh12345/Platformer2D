@@ -43,6 +43,7 @@ public class Sprite {
     private int xoff=0;
     private int yoff=0;
     Rectangle soildArea;
+    private int health;
 
 
     /**
@@ -484,6 +485,8 @@ public class Sprite {
     public void activate() {
         active = true;
     }
+    public int getHealth(){return health;}
+    public void setHealth(int Hp){health = Hp;}
     
 
 }

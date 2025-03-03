@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="com.obiscr.chatgpt.settings.EasyCodeState">
+    <option name="projectFiles" value="$PROJECT_DIR$/src/game2D/Animation.java;C:/Users/Indrajit/IdeaProjects/Game2dN6/src/game2D/Collisions.java;C:/Users/Indrajit/IdeaProjects/Game2dN6/src/game2D/GameCore.java;C:/Users/Indrajit/IdeaProjects/Game2dN6/src/game2D/Sound.java;C:/Users/Indrajit/IdeaProjects/Game2dN6/src/game2D/Sprite.java;C:/Users/Indrajit/IdeaProjects/Game2dN6/src/game2D/Tile.java;C:/Users/Indrajit/IdeaProjects/Game2dN6/src/game2D/TileMap.java;C:/Users/Indrajit/IdeaProjects/Game2dN6/src/game2D/Velocity.java;C:/Users/Indrajit/IdeaProjects/Game2dN6/src/Game.java;C:/Users/Indrajit/IdeaProjects/Game2dN6/Main.java" />
+  </component>
+</project>

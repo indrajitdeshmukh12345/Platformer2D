@@ -12,6 +12,9 @@ import game2D.*;
 
 import javax.swing.*;
 
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+
 // Game demonstrates how we can override the GameCore class
 // to create our own 'game'. We usually need to implement at
 // least 'draw' and 'update' (not including any local event handling)
@@ -62,6 +65,7 @@ public class Game extends GameCore
     Animation vilanattack;
     Animation Projectile;
     Animation Villandeath;
+    Animation Pully;
 
 
 
@@ -77,6 +81,7 @@ public class Game extends GameCore
     Sprite	player = null;
     Sprite villan = null;
     Sprite projectile = null;
+    Sprite pully = null;
     ArrayList<Sprite> 	clouds = new ArrayList<Sprite>();
     ArrayList<Tile>		collidedTiles = new ArrayList<Tile>();
 
@@ -84,7 +89,9 @@ public class Game extends GameCore
     TileMap tmap = new TileMap();	// Our tile map, note that we load it in init()
     
     long total;         			// The score will be the total time elapsed since a crash
-    int healthPlayer = 100;
+
+
+    int mouseX, mouseY;
 
 
     /**
@@ -148,6 +155,8 @@ public class Game extends GameCore
         Projectile = new Animation();
         Image animProjec = new ImageIcon("images/Projectile.png").getImage();
         Projectile.addFrame(animProjec,150);
+        Pully = new Animation();
+        Pully.loadAnimationFromSheet("images/Pully.png");
 
         
         // Initialise the player with an animation
@@ -241,11 +250,13 @@ public class Game extends GameCore
     	total = 0;
     	villan.setPosition(390,100);
         villan.setVelocity(-0.03f,0);
+        villan.setHealth(100);
         villan.setAnimation(vilanrun);
         villan.activate();
         villan.show();
         player.setPosition(200,150);
         player.setVelocity(0,0);
+        player.setHealth(100);
         player.setAnimation(marinestanding);
         player.show();
         projectile.setPosition(player.getX()+5,player.getY());
@@ -314,7 +325,7 @@ public class Game extends GameCore
 
         // Show score and status information
         String msg = String.format("Score: %d", total/100);
-        String msghealth = String.format("Health: %d", healthPlayer);
+        String msghealth = String.format("Health: %d", player.getHealth());
         g.setColor(Color.red);
         g.drawString(msg, getWidth() - 100, 50);
         g.drawString(msghealth, getWidth() - 100, 90);
@@ -376,9 +387,12 @@ public class Game extends GameCore
         // Make adjustments to the speed of the sprite due to gravity
         player.setVelocityY(player.getVelocityY() + (gravity * elapsed));
         villan.setVelocityY(0.02f);
+        
+        //Remove bullet if it goes out of bounds
+        if(projectile.getY()>screenHeight){projectile.deactivate();}
+        if(projectile.getX()>screenWidth){projectile.deactivate();}
 
-        projectile.setVelocityY((gravity*elapsed));
-        projectile.setVelocityX(projectileSpeed);
+
 
        	player.setAnimationSpeed(1.0f);
 
@@ -460,6 +474,11 @@ public class Game extends GameCore
         checkTileCollision(player, tmap);
         checkTileCollisionNPC2(villan,tmap);
         checkProjectileCollision(projectile,tmap);
+        //if villan hits player
+        if(villan.isActive()&&boundingBoxCollision(player,villan)){
+            player.setHealth(0);
+        }
+
         //if projectile hits villan
         if (projectile.isActive()&&boundingBoxCollision(projectile,villan)&&villan.isActive()){
             projectile.deactivate();
@@ -504,32 +523,7 @@ public class Game extends GameCore
         }
     }
     
-    
-     
-    /**
-     * Override of the keyPressed event defined in GameCore to catch our
-     * own events
-     * 
-     *  @param e The event that has been generated
-     */
-    public void keyPressed(KeyEvent e) 
-    { 
-    	int key = e.getKeyCode();
-    	
-		switch (key)
-		{
-			case KeyEvent.VK_UP     : flap = true; break;
-			case KeyEvent.VK_RIGHT  : moveRight = true; break;
-            case KeyEvent.VK_LEFT   : moveLeft= true;  break;
-			case KeyEvent.VK_S 		: Sound s = new Sound("sounds/caw.wav"); 
-									  s.start();
-									  break;
-			case KeyEvent.VK_ESCAPE : stop(); break;
-			case KeyEvent.VK_B 		: debug = !debug; break; // Flip the debug state
-			default : ideal=true; break;
-		}
-    
-    }
+
 
     /** Use the sample code in the lecture notes to properly detect
      * a bounding box collision between sprites s1 and s2.
@@ -700,6 +694,31 @@ public class Game extends GameCore
     }
 
 
+    /**
+     * Override of the keyPressed event defined in GameCore to catch our
+     * own events
+     *
+     *  @param e The event that has been generated
+     */
+    public void keyPressed(KeyEvent e)
+    {
+        int key = e.getKeyCode();
+
+        switch (key)
+        {
+            case KeyEvent.VK_UP     : flap = true; break;
+            case KeyEvent.VK_RIGHT  : moveRight = true; break;
+            case KeyEvent.VK_LEFT   : moveLeft= true;  break;
+            case KeyEvent.VK_S 		: Sound s = new Sound("sounds/caw.wav");
+                s.start();
+                break;
+            case KeyEvent.VK_ESCAPE : stop(); break;
+            case KeyEvent.VK_B 		: debug = !debug; break; // Flip the debug state
+            default : ideal=true; break;
+        }
+
+    }
+
 
     public void keyReleased(KeyEvent e) {
 
@@ -725,33 +744,54 @@ public class Game extends GameCore
     public void mousePressed(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON3) { // Right mouse button
            // System.out.println("Right mouse button clicked!");
+
             dash = true;
             player.setAnimationFrame(0);
 
             if (player.getScaleX() < 0.0F && player.getAnimation()==marinestanding ) {
                 player.setPosition(player.getX()-80, player.getY());
+
             }
             if (player.getScaleX()>0.0f && player.getAnimation()==marinestanding){
                 player.setPosition(player.getX()+80, player.getY());
             }
         }
-        if (e.getButton() == MouseEvent.BUTTON1&&!projectile.isActive()) { // Right mouse button
-            // System.out.println("Right mouse button clicked!");
+        if (e.getButton() == MouseEvent.BUTTON1 && !projectile.isActive()) { // Left mouse button
             shoot = true;
-            projectile.setPosition(player.getX(),player.getY());
+
+            // Get the mouse coordinates relative to the screen
+            int screenMouseX = e.getX();
+            int screenMouseY = e.getY();
+
+            // Calculate the camera offset
+            int xo = -(int) player.getX() + 200;
+            int yo = -(int) player.getY() + 200;
+
+            // Convert screen mouse coordinates to world coordinates
+            float worldMouseX = screenMouseX - xo;
+            float worldMouseY = screenMouseY - yo;
+
+            // Calculate the angle between the player and the mouse position in world coordinates
+            double angle = Math.atan2(worldMouseY - player.getY()-15, worldMouseX - player.getX());
+            float speed = projectileSpeed;
+            float velocityX = (float) (speed * cos(angle));
+            float velocityY = (float) (speed * sin(angle));
+
+            // Offset to start bullet from the player's gun position
+            float bulletStartX = player.getX() + player.getWidth() / 2;
+            float bulletStartY = player.getY() + player.getHeight() / 2;
+
+            projectile.setPosition(bulletStartX, bulletStartY);
             projectile.activate();
 
+            // Set the velocity of the projectile
+            projectile.setVelocityX(velocityX);
+            projectile.setVelocityY(velocityY);
+
             player.setAnimationFrame(0);
-
-
         }
     }
-    public void setFalseAfterDelay(int delay) {
-        new javax.swing.Timer(delay, e -> {
-            dash = false;
-            System.out.println("Boolean set to false!");
-        }).start();
-    }
+
     java.util.Timer timer = new java.util.Timer();
     @Override
     public void mouseReleased(MouseEvent e) {
