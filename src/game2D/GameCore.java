@@ -115,6 +115,7 @@ public abstract class GameCore extends JFrame implements KeyListener, MouseListe
      *  method to display the updated game state. It implements double buffering
      *  for both full screen and windowed mode.
      */
+
     public void gameLoop() {
         startTime = System.currentTimeMillis();
         currTime = startTime;

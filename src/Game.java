@@ -38,9 +38,11 @@ public class Game extends GameCore
     float	gravity = 0.0001f;
     float	fly = -0.06f;
     float	moveSpeed = 0.05f;
+    long  torchHealth = 100;
 
     float projectileSpeed = 0.5f;
-    
+    LightEffect lightEffect = new LightEffect(screenWidth, screenHeight);
+
     // Game state flags
     boolean flap = false;
     boolean moveRight = false;
@@ -68,6 +70,9 @@ public class Game extends GameCore
     Animation Villandeath;
     Animation Pully;
     Animation Spikes;
+    Animation Box;
+    Animation Button;
+    Animation Fire;
 
 
 
@@ -85,12 +90,15 @@ public class Game extends GameCore
     Sprite projectile = null;
     Sprite pully = null;
     Sprite spike = null;
+    Sprite fire = null;
     ArrayList<Sprite> 	clouds = new ArrayList<Sprite>();
     ArrayList<Tile>		collidedTiles = new ArrayList<Tile>();
     // Add a cooldown variable
     private long lastDamageTime = 0;
     private long damageCooldown = 2000; // 1 second cooldown
+    long lasttorchTime = System.currentTimeMillis();
     private boolean isgettingDamaged = false;
+    Collisions collisions = new Collisions();
 
 
     TileMap tmap = new TileMap();	// Our tile map, note that we load it in init()
@@ -124,9 +132,12 @@ public class Game extends GameCore
      * restart the game (for example you may only want to load animations once
      * but you could reset the positions of sprites each time you restart the game).
      */
+
+
     public void init()
     {         
         Sprite s;	// Temporary reference to a sprite
+
 
         // Load the tile map and print it out so we can check it is valid
         tmap.loadMap("maps", "map.txt");
@@ -172,6 +183,8 @@ public class Game extends GameCore
         Spikes = new Animation();
         Image animSpike = new ImageIcon("maps/tile_0068.png").getImage();
         Spikes.addFrame(animSpike,150);
+        Fire = new Animation();
+        Fire.loadAnimationFromSheet("images/fire.png",8,1,150);
 
         
         // Initialise the player with an animation
@@ -183,6 +196,8 @@ public class Game extends GameCore
         // initialise the pully with animation
         pully=new Sprite(Pully);
         spike = new Sprite(Spikes);
+        fire = new Sprite(Fire);
+
 
         
         // Load a single cloud animation
@@ -267,6 +282,7 @@ public class Game extends GameCore
     public void initialiseGame()
     {
     	total = 0;
+        torchHealth=100;
     	villan.setPosition(390,100);
         villan.setVelocity(-0.03f,0);
         villan.setHealth(100);
@@ -289,11 +305,19 @@ public class Game extends GameCore
         spike.setPosition(230,217);
         spike.setAnimation(Spikes);
         spike.show();
+        fire.setPosition(550,130);
+        fire.setScale(1.5f);
+        fire.setAnimation(Fire);
+        fire.show();
+        lightEffect.setEffectOn(true);
+        //lightEffect .addLightSource(fire.getX(), fire.getY());
 
-
+        lightEffect.addLightSource(player.getX(), player.getY(),200);
+        lightEffect .addLightSource(fire.getX(), fire.getY(),50);
 
     }
-    
+
+
     /**
      * Draw the current state of the game. Note the sample use of
      * debugging output that is drawn directly to the game screen.
@@ -343,12 +367,14 @@ public class Game extends GameCore
 
 
         villan.setOffsets(xo,yo);
+        fire.setOffsets(xo,yo);
         if(villan.isActive()){
             villan.drawTransformed(g);
         }
         if(spike.isActive()){
             spike.draw(g);
         }
+        if (fire.isActive()){fire.draw(g);}
 
 
         // Apply offsets to player and draw
@@ -356,12 +382,7 @@ public class Game extends GameCore
         player.drawTransformed(g);
 
 
-        // Show score and status information
-        String msg = String.format("Score: %d", total/100);
-        String msghealth = String.format("Health: %d", player.getHealth());
-        g.setColor(Color.red);
-        g.drawString(msg, getWidth() - 100, 50);
-        g.drawString(msghealth, getWidth() - 100, 90);
+
 
         if (debug)
         {
@@ -387,8 +408,17 @@ public class Game extends GameCore
             projectile.drawTransformed(g);
         }
 
+        lightEffect.draw(g);
 
 
+        // Show score and status information
+        String msg = String.format("Score: %d", total/100);
+        String msghealth = String.format("Health: %d", player.getHealth());
+        String TorchLevel = String.format("Torch health: %d",torchHealth);
+        g.setColor(Color.white);
+        g.drawString(msg, getWidth() - 100, 50);
+        g.drawString(msghealth, getWidth() - 100, 90);
+        g.drawString(TorchLevel, getWidth() - 100, 120);
 
 
 
@@ -416,21 +446,39 @@ public class Game extends GameCore
      */    
     public void update(long elapsed)
     {
-    	
+        int xo = -(int)player.getX() + 200; // Camera offset X
+        int yo = -(int)player.getY() + 200; // Camera offset Y
+        lightEffect.updateLightSource(0,player.getX(), player.getY(),200, xo, yo);
+        lightEffect.updateLightSource(1, fire.getX(), fire.getY(),50,xo,yo+5);
+
         // Make adjustments to the speed of the sprite due to gravity
         player.setVelocityY(player.getVelocityY() + (gravity * elapsed));
         villan.setVelocityY(0.02f);
-        
+
         //Remove bullet if it goes out of bounds
         if(projectile.getY()>screenHeight){projectile.deactivate();}
         if(projectile.getX()>screenWidth){projectile.deactivate();}
 
         if(player.getHealth()<=0){dead= true;}
+        if(collisions.boundingBoxCollision(player,fire)&&fire.isActive()){torchHealth=100;fire.deactivate();lightEffect.removeLightSource(1);}
 
        	player.setAnimationSpeed(1.0f);
         long currentTime = System.currentTimeMillis();
+        if(torchHealth<0){lightEffect.setEffectOn(false);}
+
+        if(lightEffect.isEffectOn()){
+
+            long torchdrainlevel = 2000;
+
+            if (currentTime - lasttorchTime > torchdrainlevel) {
+                torchHealth = torchHealth-1;
+
+                lasttorchTime = currentTime;
+
+            }
+        }
         //if villan hits player
-        if(villan.isActive()&&boundingBoxCollision(player,villan)){
+        if(villan.isActive()&&collisions.boundingBoxCollision(player,villan)){
             //long currentTime = System.currentTimeMillis();
             if (currentTime - lastDamageTime > damageCooldown) {
                 villan.setAnimation(vilanattack);
@@ -510,7 +558,7 @@ public class Game extends GameCore
         // Now update the sprites animation and position
         player.update(elapsed);
         villan.update(elapsed);
-
+        fire.update(elapsed);
         projectile.update(elapsed);
 
         Background1.setVelocityX(-player.getVelocityX()*0.05f);
@@ -528,24 +576,28 @@ public class Game extends GameCore
 
        
         // Then check for any collisions that may have occurred
+
         handleScreenEdge(player, tmap, elapsed);
         handleScreenEdge(villan,tmap,elapsed);
-        checkTileCollision(player, tmap);
-        checkTileCollisionNPC2(villan,tmap);
-        checkProjectileCollision(projectile,tmap);
 
-        if (boundingBoxCollision(player,pully)){
+        collisions.checkTileCollision(player,tmap);
+        //checkTileCollision(player, tmap);
+        collisions.checkTileCollisionNPC2(villan,tmap);
+        collisions.checkProjectileCollision(projectile,tmap);
+        collision = collisions.isCollision();
+
+        if (collisions.boundingBoxCollision(player,pully)){
             pully.activate();
             pully.update(elapsed);
             spike.deactivate();
         }
         // player hit spike
-        if(spike.isActive()&&boundingBoxCollision(player,spike)){
+        if(spike.isActive()&& collisions.boundingBoxCollision(player,spike)){
             player.setHealth(0);
         }
 
         //if projectile hits villan
-        if (projectile.isActive()&&boundingBoxCollision(projectile,villan)&&villan.isActive()){
+        if (projectile.isActive()&& collisions.boundingBoxCollision(projectile,villan)&&villan.isActive()){
             projectile.deactivate();
             villan.setAnimation(Villandeath);
             timer.schedule(new java.util.TimerTask() {
@@ -559,6 +611,8 @@ public class Game extends GameCore
 
 
         }
+        //lightEffect.draw(g, player.getX()-10, player.getY()+75);
+
     }
 
 
@@ -590,173 +644,6 @@ public class Game extends GameCore
     
 
 
-    /** Use the sample code in the lecture notes to properly detect
-     * a bounding box collision between sprites s1 and s2.
-     * 
-     * @return	true if a collision may have occurred, false if it has not.
-     */
-    public boolean boundingBoxCollision(Sprite s1, Sprite s2)
-    {
-        return (s1.getX() + s1.getWidth() >= s2.getX()) && (s1.getX() <= s2.getX() + s2.getWidth()) &&
-                (s1.getY() + s1.getHeight() >= s2.getY()) && (s1.getY() <= s2.getY() + s2.getHeight());
-    }
-    
-    /**
-     * Check and handles collisions with a tile map for the
-     * given sprite 's'. Initial functionality is limited...
-     * 
-     * @param s			The Sprite to check collisions for
-     * @param tmap		The tile map to check 
-     */
-    public void checkTileCollision(Sprite s, TileMap tmap) {
-        collision = false;
-        float sLeftDX = s.getX() + 5; // Shrink collision box
-        float sRightDX = s.getX() + s.getWidth() - 5;
-        float sTopDy = s.getY() + 5;
-        float sBottomDY = s.getY() + s.getHeight();
-
-        int leftCol = (int) (sLeftDX / tmap.getTileWidth());
-        int rightCol = (int) (sRightDX / tmap.getTileWidth());
-        int topRow = (int) (sTopDy / tmap.getTileHeight());
-        int bottomRow = (int) (sBottomDY / tmap.getTileHeight());
-
-        // Ensure character is not inside a solid tile
-        while (isTileSolid(tmap, leftCol, bottomRow) || isTileSolid(tmap, rightCol, bottomRow)) {
-            s.setY(s.getY() - 1); // Push up until outside the solid block
-            bottomRow = (int) ((s.getY() + s.getHeight()) / tmap.getTileHeight());
-            collision=true;
-        }
-
-        // Check vertical collision (Up and Down)
-        if (s.getVelocityY() < 0) { // Moving Up
-            int newTopRow = (int) ((sTopDy + s.getVelocityY()) / tmap.getTileHeight());
-            if (isTileSolid(tmap, leftCol, newTopRow) || isTileSolid(tmap, rightCol, newTopRow)) {
-                s.setVelocityY(0.0f);
-                s.setY((newTopRow + 1) * tmap.getTileHeight()); // Adjust position
-                collision=true;
-            }
-        } else if (s.getVelocityY() > 0) { // Moving Down
-            int newBottomRow = (int) ((sBottomDY + s.getVelocityY()) / tmap.getTileHeight());
-            if (isTileSolid(tmap, leftCol, newBottomRow) || isTileSolid(tmap, rightCol, newBottomRow)) {
-                s.setVelocityY(0.0f);
-                s.setY(newBottomRow * tmap.getTileHeight() - s.getHeight()); // Adjust position
-                collision=true;
-            }
-        }
-
-        // Check horizontal collision (Left and Right)
-        if (s.getVelocityX() < 0) { // Moving Left
-            int newLeftCol = (int) ((sLeftDX + s.getVelocityX()) / tmap.getTileWidth());
-            if (isTileSolid(tmap, newLeftCol, topRow) || isTileSolid(tmap, newLeftCol, bottomRow)) {
-                s.setVelocityX(0.0f);
-                s.setX((newLeftCol + 1) * tmap.getTileWidth()); // Adjust position
-                collision=true;
-            }
-        } else if (s.getVelocityX() > 0) { // Moving Right
-            int newRightCol = (int) ((sRightDX + s.getVelocityX()) / tmap.getTileWidth());
-            if (!isTileSolid(tmap, newRightCol, topRow) && !isTileSolid(tmap, newRightCol, bottomRow)) {
-                s.setX(s.getX() + s.getVelocityX()); // Allow movement if not blocked
-            } else {
-                s.setVelocityX(0.0f);
-                s.setX(newRightCol * tmap.getTileWidth() - s.getWidth()); // Adjust position
-                collision=true;
-            }
-        }
-    }
-
-    private boolean isTileSolid(TileMap tmap, int col, int row) {
-        Tile tile = tmap.getTile(col, row);
-        return tile != null && tile.getCharacter() != '.' && tile.getCharacter() !='d';
-    }
-    public void checkTileCollisionNPC2(Sprite s, TileMap tmap) {
-        boolean colide = false;
-        float sLeftDX = s.getX()+5; // Shrink collision box
-        float sRightDX = s.getX() + s.getWidth()-5;
-        float sTopDy = s.getY()+10;
-        float sBottomDY = s.getY() + s.getHeight();
-
-        int leftCol = (int) (sLeftDX / tmap.getTileWidth());
-        int rightCol = (int) (sRightDX / tmap.getTileWidth());
-        int topRow = (int) (sTopDy / tmap.getTileHeight());
-        int bottomRow = (int) (sBottomDY / tmap.getTileHeight());
-
-        // Ensure character is not inside a solid tile (push up logic)
-        while (isTileSolid(tmap, leftCol, bottomRow) || isTileSolid(tmap, rightCol, bottomRow)) {
-            s.setY(s.getY() - 1); // Push up until outside the solid block
-            bottomRow = (int) ((s.getY() + s.getHeight()) / tmap.getTileHeight());
-            colide = true;
-        }
-        s.setVelocityY(+0.01f);
-        // Check vertical collision (Up and Down)
-        if (s.getVelocityY() < 0) { // Moving Up
-            int newTopRow = (int) ((sTopDy + s.getVelocityY()) / tmap.getTileHeight());
-            if (isTileSolid(tmap, leftCol, newTopRow) || isTileSolid(tmap, rightCol, newTopRow)) {
-                s.setVelocityY(0.0f);
-                s.setY((newTopRow + 1) * tmap.getTileHeight()); // Adjust position
-                colide=true;
-            }
-        } else if (s.getVelocityY() > 0) { // Moving Down
-            int newBottomRow = (int) ((sBottomDY + s.getVelocityY()) / tmap.getTileHeight());
-            if (isTileSolid(tmap, leftCol, newBottomRow) || isTileSolid(tmap, rightCol, newBottomRow)) {
-                s.setVelocityY(0.0f);
-                s.setY(newBottomRow * tmap.getTileHeight() - s.getHeight()); // Adjust position
-                colide=true;
-            }
-        }
-
-
-        // Check horizontal collision (Left and Right)
-        boolean hitWall = false;
-
-        if (s.getVelocityX() < 0) { // Moving Left
-            int newLeftCol = (int) ((sLeftDX + s.getVelocityX()) / tmap.getTileWidth());
-            if (isTileSolid(tmap, newLeftCol, topRow) || isTileSolid(tmap, newLeftCol, bottomRow)) {
-                hitWall = true;
-                s.setX((newLeftCol + 1) * tmap.getTileWidth()); // Adjust position
-                colide=true;
-            }
-        } else if (s.getVelocityX() > 0) { // Moving Right
-            int newRightCol = (int) ((sRightDX + s.getVelocityX()) / tmap.getTileWidth());
-            if (isTileSolid(tmap, newRightCol, topRow) || isTileSolid(tmap, newRightCol, bottomRow)) {
-                hitWall = true;
-                s.setX(newRightCol * tmap.getTileWidth() - s.getWidth()); // Adjust position
-                colide=true;
-            }
-        }
-
-        // If hit a wall, reverse direction & flip sprite
-        if (hitWall) {
-            s.setVelocityX(-s.getVelocityX()); // Reverse direction
-            s.setScale((float) (s.getScaleX() * -1), 1.0f); // Flip sprite horizontally
-        } else {
-            s.setX(s.getX() + s.getVelocityX()); // Move normally if no collision
-        }
-    }
-    public void checkProjectileCollision(Sprite p, TileMap tmap) {
-        if (p == null || !p.isActive()) return; // Avoid null pointer errors
-
-        float pLeft = p.getX();
-        float pRight = p.getX() + p.getWidth();
-        float pTop = p.getY();
-        float pBottom = p.getY() + p.getHeight();
-
-        int leftCol = (int) (pLeft / tmap.getTileWidth());
-        int rightCol = (int) (pRight / tmap.getTileWidth());
-        int topRow = (int) (pTop / tmap.getTileHeight());
-        int bottomRow = (int) (pBottom / tmap.getTileHeight());
-
-        // Check if the projectile is hitting a solid tile
-        if (isTileSolid(tmap, leftCol, topRow) || isTileSolid(tmap, rightCol, topRow) ||
-                isTileSolid(tmap, leftCol, bottomRow) || isTileSolid(tmap, rightCol, bottomRow)) {
-
-            // Make the projectile vanish
-            p.deactivate();
-        } else {
-            // Move the projectile normally
-            p.setX(p.getX() + p.getVelocityX());
-            p.setY(p.getY() + p.getVelocityY());
-        }
-    }
 
 
     /**
@@ -777,8 +664,11 @@ public class Game extends GameCore
             case KeyEvent.VK_S 		: Sound s = new Sound("sounds/caw.wav");
                 s.start();
                 break;
+
             case KeyEvent.VK_ESCAPE : stop(); break;
             case KeyEvent.VK_B 		: debug = !debug; break; // Flip the debug state
+            case KeyEvent.VK_L      :  if(torchHealth>0){ lightEffect.setEffectOn(!lightEffect.isEffectOn());};lasttorchTime = System.currentTimeMillis();
+                break;
             default : ideal=true; break;
         }
 
@@ -822,7 +712,7 @@ public class Game extends GameCore
             }
         }
         if (e.getButton() == MouseEvent.BUTTON1 && !projectile.isActive()) { // Left mouse button
-            shoot = true;
+
 
             // Get the mouse coordinates relative to the screen
             int screenMouseX = e.getX();
@@ -852,8 +742,10 @@ public class Game extends GameCore
             // Set the velocity of the projectile
             projectile.setVelocityX(velocityX);
             projectile.setVelocityY(velocityY);
-
+            if(velocityX<0){player.setScale(-1,1);}
+            else player.setScale(1);
             player.setAnimationFrame(0);
+            shoot = true;
         }
     }
 
