@@ -28,18 +28,16 @@ import static java.lang.Math.sin;
 
 
 public class Game extends GameCore 
-{
-	// Useful game constants
-	static int screenWidth = 1000;
-	static int screenHeight = 500;
+{// Game constants
+    static int screenWidth = 1000;
+    static int screenHeight = 500;
 
-	// Game constants
-    float 	lift = 0.005f;
-    float	gravity = 0.0001f;
-    float	fly = -0.06f;
-    float	moveSpeed = 0.05f;
-    long  torchHealth = 100;
-
+    // Game variables
+    float lift = 0.005f;
+    float gravity = 0.0001f;
+    float fly = -0.06f;
+    float moveSpeed = 0.05f;
+    long torchHealth = 100;
     float projectileSpeed = 0.5f;
     LightEffect lightEffect = new LightEffect(screenWidth, screenHeight);
 
@@ -47,65 +45,45 @@ public class Game extends GameCore
     boolean flap = false;
     boolean moveRight = false;
     boolean shoot = false;
-
     boolean dead = false;
     boolean moveLeft = false;
-
     boolean dash = false;
     boolean debug = false;
     boolean collision = false;
-    boolean ideal =true;
+    boolean ideal = true;
 
     // Game resources
-    Animation marinerun;
-    Animation marinestanding;
-    Animation marinedie;
-    Animation marinedash;
-    Animation marinewake;
-    Animation marineshoot;
-    Animation marinedamage;
-    Animation vilanrun;
-    Animation vilanattack;
-    Animation Projectile;
-    Animation Villandeath;
-    Animation Pully;
-    Animation Spikes;
-    Animation Box;
-    Animation Button;
-    Animation Fire;
+    Animation marinerun, marinestanding, marinedie, marinedash, marinewake, marineshoot, marinedamage;
+    Animation vilanrun, vilanattack, Projectile, Villandeath, Pully, Spikes, Box, Button, Fire;
 
+    // Background sprites
+    Sprite Background1, Background2, Background3, Background4, Background5;
 
+    // Player and other sprites
+    Sprite player, projectile, pully, spike, fire;
 
-    Sprite Background1 = null;
-    Sprite Background2 = null;
-    Sprite Background3 = null;
-    Sprite Background4 = null;
-    Sprite Background5 = null;
-    Sprite Background6 = null;
-    Sprite Background7 = null;
+    // Lists for multiple Villans and Torches
+    private ArrayList<Villan> villans = new ArrayList<>();
+    private ArrayList<Torch> torches = new ArrayList<>();
 
-    
-    Sprite	player = null;
-    Sprite villan = null;
-    Sprite projectile = null;
-    Sprite pully = null;
-    Sprite spike = null;
-    Sprite fire = null;
-    ArrayList<Sprite> 	clouds = new ArrayList<Sprite>();
-    ArrayList<Tile>		collidedTiles = new ArrayList<Tile>();
-    // Add a cooldown variable
+    // Other lists
+    ArrayList<Sprite> clouds = new ArrayList<>();
+    ArrayList<Tile> collidedTiles = new ArrayList<>();
+
+    // Cooldown variables
     private long lastDamageTime = 0;
     private long damageCooldown = 2000; // 1 second cooldown
     long lasttorchTime = System.currentTimeMillis();
     private boolean isgettingDamaged = false;
     Collisions collisions = new Collisions();
 
+    // Tile map
+    TileMap tmap = new TileMap();
 
-    TileMap tmap = new TileMap();	// Our tile map, note that we load it in init()
-    
-    long total;         			// The score will be the total time elapsed since a crash
+    // Score
+    long total;
 
-
+    // Mouse coordinates
     int mouseX, mouseY;
 
 
@@ -135,96 +113,109 @@ public class Game extends GameCore
 
 
     public void init()
-    {         
+    {
         Sprite s;	// Temporary reference to a sprite
-
 
         // Load the tile map and print it out so we can check it is valid
         tmap.loadMap("maps", "map.txt");
-        
+
         setSize(tmap.getPixelWidth()/4, tmap.getPixelHeight());
         setVisible(true);
+        loadAnimations();
 
-        // Create a set of background sprites that we can 
+        // Create a set of background sprites that we can
         // rearrange to give the illusion of motion
-        
-        marinerun = new Animation();
-        marinerun.loadAnimationFromSheet("images/move with FX.png", 1, 8, 150);
 
-        marinestanding = new Animation();
-        marinestanding.loadAnimationFromSheet("images/static idle.png",1,1,150);
 
-        marinedie =new Animation();
-        marinedie.loadAnimationFromSheet("images/deathPlayer.png",1,6,150);
-
-        marinedash = new Animation();
-        marinedash.loadAnimationFromSheet("images/GAS dash with FX.png",1,7,110);
-
-        marinewake = new Animation();
-        marinewake.loadAnimationFromSheet("images/wake.png",1,5,150);
-
-        marineshoot = new Animation();
-        marineshoot.loadAnimationFromSheet("images/shoot with FX.png",1,4,150);
-        marinedamage = new Animation();
-        marinedamage.loadAnimationFromSheet("images/damaged.png",1,2,150);
-
-        vilanrun = new Animation();
-        vilanrun.loadAnimationFromSheet("images/run.png",1,8,150);
-        Villandeath = new Animation();
-        Villandeath.loadAnimationFromSheet("images/death.png",1,5,150);
-        vilanattack = new Animation();
-        vilanattack.loadAnimationFromSheet("images/attack.png",1,4,150);
-
-        Projectile = new Animation();
-        Image animProjec = new ImageIcon("images/Projectile.png").getImage();
-        Projectile.addFrame(animProjec,150);
-        Pully = new Animation();
-        Pully.loadAnimationFromSheet("images/Pully.png",3,1,300);
-        Spikes = new Animation();
-        Image animSpike = new ImageIcon("maps/tile_0068.png").getImage();
-        Spikes.addFrame(animSpike,150);
-        Fire = new Animation();
-        Fire.loadAnimationFromSheet("images/fire.png",8,1,150);
-
-        
         // Initialise the player with an animation
         player = new Sprite(marinestanding);
         // intialise the vilan with an animation
-        villan = new Sprite(vilanrun);
+        villans.add(new Villan(vilanrun, -0.03f));
+        villans.add(new Villan(vilanrun, -0.03f));
+        villans.get(0).setPosition(390, 100);
+        villans.get(1).setPosition(390, 150);
         //initialise the projectile with an animation
         projectile=new Sprite(Projectile);
         // initialise the pully with animation
         pully=new Sprite(Pully);
         spike = new Sprite(Spikes);
         fire = new Sprite(Fire);
+        torches.add(new Torch(Fire, 100));
 
 
-        
-        // Load a single cloud animation
-        Animation ca = new Animation();
-        ca.addFrame(loadImage("images/cloud.png"), 1000);
+        torches.get(0).setPosition(550, 200);
 
 
-        
-        // Create 3 clouds at random positions off the screen
-        // to the right
-        for (int c=0; c<3; c++)
-        {
-        	s = new Sprite(ca);
-        	s.setX(screenWidth + (int)(Math.random()*200.0f));
-        	s.setY(30 + (int)(Math.random()*150.0f));
-        	s.setVelocityX(-0.02f);
-        	s.show();
-        	clouds.add(s);
+
+        lightEffect.addLightSource(player.getX(), player.getY(), 200);
+        // Add light sources for torches
+        for (int i = 0; i < torches.size(); i++) {
+            Torch torch = torches.get(i);
+            lightEffect.addLightSource(torch.getX(), torch.getY(), 50);
         }
+        // Add light source for player
+
+
+
+        initializeBackground();
+
+
+        initialiseGame();
+
+
+        System.out.println(tmap);
+    }
+    private void loadAnimations() {
+        marinerun = new Animation();
+        marinerun.loadAnimationFromSheet("images/move with FX.png", 1, 8, 150);
+
+        marinestanding = new Animation();
+        marinestanding.loadAnimationFromSheet("images/static idle.png", 1, 1, 150);
+
+        marinedie = new Animation();
+        marinedie.loadAnimationFromSheet("images/deathPlayer.png", 1, 6, 150);
+
+        marinedash = new Animation();
+        marinedash.loadAnimationFromSheet("images/GAS dash with FX.png", 1, 7, 110);
+
+        marinewake = new Animation();
+        marinewake.loadAnimationFromSheet("images/wake.png", 1, 5, 150);
+
+        marineshoot = new Animation();
+        marineshoot.loadAnimationFromSheet("images/shoot with FX.png", 1, 4, 150);
+
+        marinedamage = new Animation();
+        marinedamage.loadAnimationFromSheet("images/damaged.png", 1, 2, 150);
+
+        vilanrun = new Animation();
+        vilanrun.loadAnimationFromSheet("images/run.png", 1, 8, 150);
+
+        Villandeath = new Animation();
+        Villandeath.loadAnimationFromSheet("images/death.png", 1, 5, 150);
+
+        vilanattack = new Animation();
+        vilanattack.loadAnimationFromSheet("images/attack.png", 1, 4, 150);
+
+        Projectile = new Animation();
+        Image animProjec = new ImageIcon("images/Projectile.png").getImage();
+        Projectile.addFrame(animProjec, 150);
+
+        Pully = new Animation();
+        Pully.loadAnimationFromSheet("images/Pully.png", 3, 1, 300);
+
+        Spikes = new Animation();
+        Image animSpike = new ImageIcon("maps/tile_0068.png").getImage();
+        Spikes.addFrame(animSpike, 150);
+
+        Fire = new Animation();
+        Fire.loadAnimationFromSheet("images/fire.png", 8, 1, 150);
+    }
+    private void initializeBackground() {
         Animation backgrownd1 = new Animation();
         Animation backgrownd2 = new Animation();
         Animation backgrownd3 = new Animation();
         Animation backgrownd4 = new Animation();
         Animation backgrownd5 = new Animation();
-
-
-
 
         //Paralax bg
         backgrownd1.addFrame(loadImage("images/Paralaxbg/1.png"), 1000);
@@ -268,10 +259,7 @@ public class Game extends GameCore
         Background5.show();
 
 
-        initialiseGame();
-
-      		
-        System.out.println(tmap);
+        // Initialize other backgrounds similarly...
     }
 
     /**
@@ -283,12 +271,17 @@ public class Game extends GameCore
     {
     	total = 0;
         torchHealth=100;
-    	villan.setPosition(390,100);
-        villan.setVelocity(-0.03f,0);
-        villan.setHealth(100);
-        villan.setAnimation(vilanrun);
-        villan.activate();
-        villan.show();
+        for (int i = 0; i < villans.size(); i++){
+
+            villans.get(i).setVelocity(-0.03f,0);
+            villans.get(i).setHealth(100);
+            villans.get(i).setAnimation(vilanrun);
+            villans.get(i).activate();
+            villans.get(i).show();
+        }
+        villans.get(0).setPosition(390,100);
+        villans.get(1).setPosition(390,180);
+
         player.setPosition(200,150);
         player.setVelocity(0,0);
         player.setHealth(100);
@@ -305,15 +298,15 @@ public class Game extends GameCore
         spike.setPosition(230,217);
         spike.setAnimation(Spikes);
         spike.show();
-        fire.setPosition(550,130);
+        fire.setPosition(torches.get(0).getX()-12,torches.get(0).getY()-15);
         fire.setScale(1.5f);
         fire.setAnimation(Fire);
         fire.show();
         lightEffect.setEffectOn(true);
         //lightEffect .addLightSource(fire.getX(), fire.getY());
 
-        lightEffect.addLightSource(player.getX(), player.getY(),200);
-        lightEffect .addLightSource(fire.getX(), fire.getY(),50);
+       // lightEffect.addLightSource(player.getX(), player.getY(),200);
+        //lightEffect .addLightSource(fire.getX(), fire.getY(),50);
 
     }
 
@@ -366,10 +359,16 @@ public class Game extends GameCore
         spike.setOffsets(xo,yo);
 
 
-        villan.setOffsets(xo,yo);
+
         fire.setOffsets(xo,yo);
-        if(villan.isActive()){
-            villan.drawTransformed(g);
+        for (Villan villan : villans) {
+            villan.setOffsets(xo,yo);
+            if(villan.isActive()) {
+
+                villan.setOffsets(xo, yo);
+                villan.drawTransformed(g);
+
+            }
         }
         if(spike.isActive()){
             spike.draw(g);
@@ -395,7 +394,9 @@ public class Game extends GameCore
 
             g.setColor(Color.red);
         	player.drawBoundingBox(g);
-            villan.drawBoundingBox(g);
+            for (Villan villan : villans) {
+                villan.drawBoundingBox(g);
+            }
             projectile.drawBoundingBox(g);
 
         	g.drawString(String.format("Player: %.0f,%.0f", player.getX(),player.getY()),
@@ -449,11 +450,13 @@ public class Game extends GameCore
         int xo = -(int)player.getX() + 200; // Camera offset X
         int yo = -(int)player.getY() + 200; // Camera offset Y
         lightEffect.updateLightSource(0,player.getX(), player.getY(),200, xo, yo);
-        lightEffect.updateLightSource(1, fire.getX(), fire.getY(),50,xo,yo+5);
-
+        for (int i = 0; i < torches.size(); i++) {
+            Torch torch = torches.get(i);
+            lightEffect.updateLightSource(i + 1, torch.getX(), torch.getY(), 50, xo, yo + 5);
+        }
         // Make adjustments to the speed of the sprite due to gravity
         player.setVelocityY(player.getVelocityY() + (gravity * elapsed));
-        villan.setVelocityY(0.02f);
+
 
         //Remove bullet if it goes out of bounds
         if(projectile.getY()>screenHeight){projectile.deactivate();}
@@ -477,23 +480,63 @@ public class Game extends GameCore
 
             }
         }
-        //if villan hits player
-        if(villan.isActive()&&collisions.boundingBoxCollision(player,villan)){
-            //long currentTime = System.currentTimeMillis();
-            if (currentTime - lastDamageTime > damageCooldown) {
-                villan.setAnimation(vilanattack);
-                player.setAnimation(marinedamage);
-                player.setHealth(player.getHealth() - 35);
-                lastDamageTime = currentTime; // Update the last damage time
-                isgettingDamaged=true;
-            }
-           else {
-                isgettingDamaged = false;
-                villan.setAnimation(vilanrun);
+        //update villan
+        // Update Villans
+        for (Villan villan : villans) {
+            villan.update(elapsed);
+
+            collisions.checkTileCollisionNPC2(villan,tmap);
+
+            handleScreenEdge(villan,tmap,elapsed);
+
+            //if projectile hits villan
+            if (projectile.isActive()&& collisions.boundingBoxCollision(projectile,villan)&&villan.isActive()) {
+                projectile.deactivate();
+                villan.setAnimation(Villandeath);
+                timer.schedule(new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        villan.deactivate();
+
+
+                    }
+                }, 750);
             }
 
 
+                // Check for collisions with the player
+            if (collisions.boundingBoxCollision(player, villan) && villan.isActive()) {
+                // long currentTime = System.currentTimeMillis();
+                if (currentTime - lastDamageTime > damageCooldown) {
+                    villan.setAnimation(vilanattack);
+                    player.setAnimation(marinedamage);
+                    player.setHealth(player.getHealth() - 35);
+                    lastDamageTime = currentTime;
+                    isgettingDamaged = true;
+                } else {
+                    isgettingDamaged = false;
+                    villan.setAnimation(vilanrun);
+                }
+            }
         }
+        //update Torches
+
+        for (int i = 0; i < torches.size(); i++) {
+            Torch torch = torches.get(i);
+            torch.update(elapsed);
+
+            // Check for collisions with the player
+            if (collisions.boundingBoxCollision(player, torch) && torch.isActive()) {
+                torchHealth = 100; // Restore torch health
+                torch.deactivate(); // Deactivate the torch
+                if (lightEffect.getLightSourceCount() > i+1) {
+                    lightEffect.removeLightSource(i+1);
+                }
+            }
+        }
+
+
+
 
         if(ideal&&isgettingDamaged==false){
             player.setAnimation(marinestanding);
@@ -557,8 +600,8 @@ public class Game extends GameCore
        	
         // Now update the sprites animation and position
         player.update(elapsed);
-        villan.update(elapsed);
-        fire.update(elapsed);
+
+
         projectile.update(elapsed);
 
         Background1.setVelocityX(-player.getVelocityX()*0.05f);
@@ -578,11 +621,11 @@ public class Game extends GameCore
         // Then check for any collisions that may have occurred
 
         handleScreenEdge(player, tmap, elapsed);
-        handleScreenEdge(villan,tmap,elapsed);
+
 
         collisions.checkTileCollision(player,tmap);
         //checkTileCollision(player, tmap);
-        collisions.checkTileCollisionNPC2(villan,tmap);
+
         collisions.checkProjectileCollision(projectile,tmap);
         collision = collisions.isCollision();
 
@@ -596,21 +639,9 @@ public class Game extends GameCore
             player.setHealth(0);
         }
 
-        //if projectile hits villan
-        if (projectile.isActive()&& collisions.boundingBoxCollision(projectile,villan)&&villan.isActive()){
-            projectile.deactivate();
-            villan.setAnimation(Villandeath);
-            timer.schedule(new java.util.TimerTask() {
-                @Override
-                public void run() {
-                    villan.deactivate();
 
 
-                }
-            }, 750);
 
-
-        }
         //lightEffect.draw(g, player.getX()-10, player.getY()+75);
 
     }

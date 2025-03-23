@@ -3,10 +3,14 @@ package game2D;
 public class Villan extends Sprite {
     private int health;
     private float speed;
+    private float velocityX; // Each villan has its own velocity
+    private float animationSpeed; // Each villan has its own animation speed
 
-    public Villan(Animation anim, float speed) {
+
+    public Villan(Animation anim, float velocityX) {
         super(anim);
-        this.speed = speed;
+        this.velocityX = velocityX;
+        this.animationSpeed = 1.0f; // Default animation speed
         this.health = 100; // Default health
     }
 

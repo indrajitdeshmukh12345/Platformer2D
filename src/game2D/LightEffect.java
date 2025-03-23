@@ -12,6 +12,10 @@ public class LightEffect {
     private List<LightSource> lightSources = new ArrayList<>();
     private boolean effectOn = true;
 
+    public int getLightSourceCount() {
+        return lightSources.size();
+    }
+
     // Inner class to store position and radius
     private static class LightSource {
         Point2D position;
