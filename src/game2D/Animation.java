@@ -1,7 +1,6 @@
 package game2D;
 
-import java.awt.Image;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.image.CropImageFilter;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
@@ -167,16 +166,33 @@ public class Animation {
      * @return	True if it has looped once.
      */
     public boolean hasLooped() { return looped; }
-    
     /**
-     * Loads a complete animation from an animation sheet and adds each
-     * frame in the sheet to the animation with the given frameDuration.
-     * 
-     * @param fileName	The path to the file to load the animations from
-     * @param rows		How many rows there are in the sheet
-     * @param columns	How many columns there are in the sheet
-     * @param frameDuration	The duration of each frame
+     * clone animation object
      */
+    public Animation clone() {
+        Animation cloned = new Animation();
+        for (AnimFrame frame : this.frames) {
+            cloned.addFrame(frame.image, frame.endTime - (cloned.totalDuration == 0 ? 0 : cloned.totalDuration));
+        }
+        cloned.currFrameIndex = this.currFrameIndex;
+        cloned.animTime = this.animTime;
+        cloned.totalDuration = this.totalDuration;
+        cloned.animSpeed = this.animSpeed;
+        cloned.loop = this.loop;
+        cloned.looped = this.looped;
+        cloned.play = this.play;
+        cloned.stopFrame = this.stopFrame;
+        return cloned;}
+
+        /**
+         * Loads a complete animation from an animation sheet and adds each
+         * frame in the sheet to the animation with the given frameDuration.
+         *
+         * @param fileName	The path to the file to load the animations from
+         * @param rows		How many rows there are in the sheet
+         * @param columns	How many columns there are in the sheet
+         * @param frameDuration	The duration of each frame
+         */
     public void loadAnimationFromSheet(String fileName, int columns, int rows, int frameDuration)
     {
     	Image sheet = new ImageIcon(fileName).getImage();

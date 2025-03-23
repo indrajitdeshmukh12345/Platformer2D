@@ -130,8 +130,9 @@ public class Game extends GameCore
         // Initialise the player with an animation
         player = new Sprite(marinestanding);
         // intialise the vilan with an animation
-        villans.add(new Villan(vilanrun, -0.03f));
-        villans.add(new Villan(vilanrun, -0.03f));
+
+        villans.add(new Villan(vilanrun.clone(), -0.03f));
+        villans.add(new Villan(vilanrun.clone(), -0.03f));
         villans.get(0).setPosition(390, 100);
         villans.get(1).setPosition(390, 150);
         //initialise the projectile with an animation
@@ -510,7 +511,7 @@ public class Game extends GameCore
                 if (currentTime - lastDamageTime > damageCooldown) {
                     villan.setAnimation(vilanattack);
                     player.setAnimation(marinedamage);
-                    player.setHealth(player.getHealth() - 35);
+                    player.setHealth(player.getHealth() - 50);
                     lastDamageTime = currentTime;
                     isgettingDamaged = true;
                 } else {
@@ -631,6 +632,7 @@ public class Game extends GameCore
 
         if (collisions.boundingBoxCollision(player,pully)){
             pully.activate();
+            pully.setAnimationSpeed(0.5f);
             pully.update(elapsed);
             spike.deactivate();
         }
