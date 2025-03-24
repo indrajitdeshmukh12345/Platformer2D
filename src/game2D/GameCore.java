@@ -82,7 +82,7 @@ public abstract class GameCore extends JFrame implements KeyListener, MouseListe
      * @param xres	Width in pixels of game screen
      * @param yres	Height in pixels of game screen
      */
-    private void init(boolean full, int xres, int yres) {
+    void init(boolean full, int xres, int yres) {
 
         setSize(xres,yres);
         setIconImage(new ImageIcon("images/scifi_alien_run_1.png").getImage());
@@ -158,10 +158,10 @@ public abstract class GameCore extends JFrame implements KeyListener, MouseListe
     /**
      * @return The current frames per second (FPS)
      */
-    public float getFPS()
+    public int getFPS()
     {
-    	if (currTime - startTime <= 0) return 0.0f;
-    	return (float)frames/((currTime - startTime)/1000.0f);
+    	if (currTime - startTime <= 0) return (int) 0.0f;
+    	return (int) ((int) frames/((currTime - startTime)/1000.0f));
     }
 
     /**

@@ -31,6 +31,7 @@ public class Game extends GameCore
 {// Game constants
     static int screenWidth = 1000;
     static int screenHeight = 500;
+    private int currentLevel = 1;
 
     // Game variables
     float lift = 0.005f;
@@ -54,13 +55,13 @@ public class Game extends GameCore
 
     // Game resources
     Animation marinerun, marinestanding, marinedie, marinedash, marinewake, marineshoot, marinedamage;
-    Animation vilanrun, vilanattack, Projectile, Villandeath, Pully, Spikes, Box, Button, Fire;
+    Animation vilanrun, vilanattack, Projectile, Villandeath, Pully, Spikes, Box, Button, Fire,villanrun2;
 
     // Background sprites
     Sprite Background1, Background2, Background3, Background4, Background5;
 
     // Player and other sprites
-    Sprite player, projectile, pully, spike, fire;
+    Sprite player, projectile, pully, spike, fire, box;
 
     // Lists for multiple Villans and Torches
     private ArrayList<Villan> villans = new ArrayList<>();
@@ -76,6 +77,7 @@ public class Game extends GameCore
     long lasttorchTime = System.currentTimeMillis();
     private boolean isgettingDamaged = false;
     Collisions collisions = new Collisions();
+    Collisions collisions2 = new Collisions();
 
     // Tile map
     TileMap tmap = new TileMap();
@@ -85,6 +87,12 @@ public class Game extends GameCore
 
     // Mouse coordinates
     int mouseX, mouseY;
+    /**
+     * level selection
+     */
+    public void setLevel(int level) {
+        this.currentLevel = level;
+    }
 
 
     /**
@@ -113,6 +121,7 @@ public class Game extends GameCore
 
 
     public void init()
+
     {
         Sprite s;	// Temporary reference to a sprite
 
@@ -131,8 +140,8 @@ public class Game extends GameCore
         player = new Sprite(marinestanding);
         // intialise the vilan with an animation
 
-        villans.add(new Villan(vilanrun.clone(), -0.03f));
-        villans.add(new Villan(vilanrun.clone(), -0.03f));
+        villans.add(new Villan(vilanrun, -0.03f));
+        villans.add(new Villan(villanrun2, -0.03f));
         villans.get(0).setPosition(390, 100);
         villans.get(1).setPosition(390, 150);
         //initialise the projectile with an animation
@@ -140,13 +149,15 @@ public class Game extends GameCore
         // initialise the pully with animation
         pully=new Sprite(Pully);
         spike = new Sprite(Spikes);
+        box = new Sprite(Box);
         fire = new Sprite(Fire);
         torches.add(new Torch(Fire, 100));
 
 
-        torches.get(0).setPosition(550, 200);
+        torches.get(0).setPosition(450, 200);
 
 
+        // Add light source for player
 
         lightEffect.addLightSource(player.getX(), player.getY(), 200);
         // Add light sources for torches
@@ -154,7 +165,6 @@ public class Game extends GameCore
             Torch torch = torches.get(i);
             lightEffect.addLightSource(torch.getX(), torch.getY(), 50);
         }
-        // Add light source for player
 
 
 
@@ -210,6 +220,11 @@ public class Game extends GameCore
 
         Fire = new Animation();
         Fire.loadAnimationFromSheet("images/fire.png", 8, 1, 150);
+        Box = new Animation();
+        Image animBox = new ImageIcon("maps/tile_0028.png").getImage();
+        Box.addFrame(animBox,150);
+        villanrun2 = new Animation();
+        villanrun2.loadAnimationFromSheet("images/run.png", 1, 8, 150);
     }
     private void initializeBackground() {
         Animation backgrownd1 = new Animation();
@@ -245,7 +260,7 @@ public class Game extends GameCore
 
         //Background.setVelocityX(player.getVelocityX());
         Background3.setScale(0.5f,0.45f);
-        Background3.setPosition(0,0);
+        Background3.setPosition(0,80);
         Background3.show();
         Background4 = new Sprite(backgrownd4);
 
@@ -303,6 +318,9 @@ public class Game extends GameCore
         fire.setScale(1.5f);
         fire.setAnimation(Fire);
         fire.show();
+        box.setPosition(550,190);
+        box.setAnimation(Box);
+        box.show();
         lightEffect.setEffectOn(true);
         //lightEffect .addLightSource(fire.getX(), fire.getY());
 
@@ -358,10 +376,9 @@ public class Game extends GameCore
         pully.setOffsets(xo,yo);
         pully.draw(g);
         spike.setOffsets(xo,yo);
-
-
-
         fire.setOffsets(xo,yo);
+        box.setOffsets(xo,yo);
+        box.draw(g);
         for (Villan villan : villans) {
             villan.setOffsets(xo,yo);
             if(villan.isActive()) {
@@ -415,12 +432,14 @@ public class Game extends GameCore
 
         // Show score and status information
         String msg = String.format("Score: %d", total/100);
+        String fps = String.format("Frames: %d", getFPS());
         String msghealth = String.format("Health: %d", player.getHealth());
         String TorchLevel = String.format("Torch health: %d",torchHealth);
         g.setColor(Color.white);
-        g.drawString(msg, getWidth() - 100, 50);
+        g.drawString(msg, getWidth() - 100, 60);
         g.drawString(msghealth, getWidth() - 100, 90);
         g.drawString(TorchLevel, getWidth() - 100, 120);
+        g.drawString(fps, getWidth() - 100, 150);
 
 
 
@@ -457,16 +476,20 @@ public class Game extends GameCore
         }
         // Make adjustments to the speed of the sprite due to gravity
         player.setVelocityY(player.getVelocityY() + (gravity * elapsed));
-
+        box.setVelocityY(box.getVelocityY() + (gravity * elapsed));
 
         //Remove bullet if it goes out of bounds
         if(projectile.getY()>screenHeight){projectile.deactivate();}
         if(projectile.getX()>screenWidth){projectile.deactivate();}
 
         if(player.getHealth()<=0){dead= true;}
-        if(collisions.boundingBoxCollision(player,fire)&&fire.isActive()){torchHealth=100;fire.deactivate();lightEffect.removeLightSource(1);}
+        if(collisions.boundingBoxCollision(player,fire)&&fire.isActive()){torchHealth=100;fire.deactivate();}
+        if(collisions.boundingBoxCollision(player,box)){
+            moveSpeed = 0.02f;
+            box.setVelocityX(player.getVelocityX());
+            }else {moveSpeed = 0.05f;box.setVelocityX(0.0f);}
 
-       	player.setAnimationSpeed(1.0f);
+        player.setAnimationSpeed(1.0f);
         long currentTime = System.currentTimeMillis();
         if(torchHealth<0){lightEffect.setEffectOn(false);}
 
@@ -485,7 +508,6 @@ public class Game extends GameCore
         // Update Villans
         for (Villan villan : villans) {
             villan.update(elapsed);
-
             collisions.checkTileCollisionNPC2(villan,tmap);
 
             handleScreenEdge(villan,tmap,elapsed);
@@ -505,7 +527,7 @@ public class Game extends GameCore
             }
 
 
-                // Check for collisions with the player
+            // Check for collisions with the player
             if (collisions.boundingBoxCollision(player, villan) && villan.isActive()) {
                 // long currentTime = System.currentTimeMillis();
                 if (currentTime - lastDamageTime > damageCooldown) {
@@ -516,7 +538,7 @@ public class Game extends GameCore
                     isgettingDamaged = true;
                 } else {
                     isgettingDamaged = false;
-                    villan.setAnimation(vilanrun);
+                   // villan.setAnimation(vilanrun);
                 }
             }
         }
@@ -601,7 +623,7 @@ public class Game extends GameCore
        	
         // Now update the sprites animation and position
         player.update(elapsed);
-
+        box.update(elapsed);
 
         projectile.update(elapsed);
 
@@ -625,14 +647,21 @@ public class Game extends GameCore
 
 
         collisions.checkTileCollision(player,tmap);
-        //checkTileCollision(player, tmap);
+        collisions2.checkTileCollision(box,tmap);
+
 
         collisions.checkProjectileCollision(projectile,tmap);
         collision = collisions.isCollision();
 
         if (collisions.boundingBoxCollision(player,pully)){
             pully.activate();
-            pully.setAnimationSpeed(0.5f);
+            pully.setAnimationSpeed(1f);
+            timer.schedule(new java.util.TimerTask() {
+                @Override
+                public void run() {
+                    pully.pauseAnimation();
+                }
+            }, 1500);
             pully.update(elapsed);
             spike.deactivate();
         }
@@ -744,8 +773,9 @@ public class Game extends GameCore
                 player.setPosition(player.getX()+80, player.getY());
             }
         }
+        // player shoots
         if (e.getButton() == MouseEvent.BUTTON1 && !projectile.isActive()) { // Left mouse button
-
+            torchHealth = torchHealth-20;
 
             // Get the mouse coordinates relative to the screen
             int screenMouseX = e.getX();

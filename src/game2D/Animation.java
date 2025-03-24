@@ -308,7 +308,11 @@ public class Animation {
     	if (f < 0 || f >= frames.size()) return;
     	currFrameIndex = f;
     }
-    
+
+    public float getAnimationSpeed() {
+        return this.animSpeed;
+    }
+
     /**
      * Private class to hold information about a given
      * animation frame.
