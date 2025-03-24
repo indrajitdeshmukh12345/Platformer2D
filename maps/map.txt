@@ -1,4 +1,4 @@
-128 40 18 18
+128 35 18 18
 // The first line should contain the width and height of the
 // map and the width and height of each tile. A list of character to
 // tile mappings is then provided where each character is preceded by a
@@ -96,21 +96,16 @@ kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk...............
 kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
 kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
 kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
 kbbbbbbbbbbbcdddabbbbbbbbbbbbbbbbbbbbbddbbbbbbbbbbbbbbbbbbbbbbbkk..............................................................i
 kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
 kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
 kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
 kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
 yzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzkk..............................................................i
-k..............................................................ik..............................................................i
-k..............................................................ik..............................................................i
-k..............................................................ik..............................................................i
-k..............................................................ik..............................................................i
+kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
+kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
+kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
+kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddkk..............................................................i
 k..............................................................ik..............................................................i
 
 

@@ -27,11 +27,10 @@ import static java.lang.Math.sin;
 @SuppressWarnings("serial")
 
 
-public class Game extends GameCore 
-{// Game constants
+public class Game extends GameCore {// Game constants
     static int screenWidth = 1000;
     static int screenHeight = 500;
-    private int currentLevel = 1;
+    private static int currentLevel = 1;
 
     // Game variables
     float lift = 0.005f;
@@ -61,11 +60,12 @@ public class Game extends GameCore
     Sprite Background1, Background2, Background3, Background4, Background5;
 
     // Player and other sprites
-    Sprite player, projectile, pully, spike, fire, box;
+    Sprite player, projectile, pully, fire, box;
 
     // Lists for multiple Villans and Torches
     private ArrayList<Villan> villans = new ArrayList<>();
     private ArrayList<Torch> torches = new ArrayList<>();
+    private ArrayList<Spike> spikes = new ArrayList<>();
 
     // Other lists
     ArrayList<Sprite> clouds = new ArrayList<>();
@@ -81,6 +81,8 @@ public class Game extends GameCore
 
     // Tile map
     TileMap tmap = new TileMap();
+    TileMap tmap2 = new TileMap();
+
 
     // Score
     long total;
@@ -101,13 +103,18 @@ public class Game extends GameCore
      * 
      * @param args	The list of parameters this program might use (ignored)
      */
+
+
     public static void main(String[] args) {
 
-        Game gct = new Game();
-        gct.init();
-        // Start in windowed mode with the given screen height and width
-        gct.run(false,screenWidth,screenHeight);
+        Game game = new Game();
+        currentLevel = GameLauncherGUI.getSelectedLevel();
+        game.init();
+        game.run(false, screenWidth, screenHeight);
+
+
     }
+
 
     /**
      * Initialise the class, e.g. set up variables, load images,
@@ -123,55 +130,63 @@ public class Game extends GameCore
     public void init()
 
     {
-        Sprite s;	// Temporary reference to a sprite
+        if (currentLevel == 1) {
+            Sprite s;	// Temporary reference to a sprite
 
-        // Load the tile map and print it out so we can check it is valid
-        tmap.loadMap("maps", "map.txt");
+            // Load the tile map and print it out so we can check it is valid
+            tmap.loadMap("maps", "map.txt");
 
-        setSize(tmap.getPixelWidth()/4, tmap.getPixelHeight());
-        setVisible(true);
-        loadAnimations();
+            setSize(tmap.getPixelWidth()/4, tmap.getPixelHeight());
+            setVisible(true);
+            loadAnimations();
 
-        // Create a set of background sprites that we can
-        // rearrange to give the illusion of motion
-
-
-        // Initialise the player with an animation
-        player = new Sprite(marinestanding);
-        // intialise the vilan with an animation
-
-        villans.add(new Villan(vilanrun, -0.03f));
-        villans.add(new Villan(villanrun2, -0.03f));
-        villans.get(0).setPosition(390, 100);
-        villans.get(1).setPosition(390, 150);
-        //initialise the projectile with an animation
-        projectile=new Sprite(Projectile);
-        // initialise the pully with animation
-        pully=new Sprite(Pully);
-        spike = new Sprite(Spikes);
-        box = new Sprite(Box);
-        fire = new Sprite(Fire);
-        torches.add(new Torch(Fire, 100));
+            // Create a set of background sprites that we can
+            // rearrange to give the illusion of motion
 
 
-        torches.get(0).setPosition(450, 200);
+            // Initialise the player with an animation
+            player = new Sprite(marinestanding);
+            // intialise the vilan with an animation
+
+            villans.add(new Villan(vilanrun, -0.03f));
+            villans.add(new Villan(villanrun2, -0.03f));
+            villans.add(new Villan(villanrun2, -0.03f));
+            villans.get(0).setPosition(390, 100);
+            villans.get(1).setPosition(390, 150);
+            villans.get(2).setPosition(472,370);
+            //initialise the projectile with an animation
+            projectile=new Sprite(Projectile);
+            // initialise the pully with animation
+            pully=new Sprite(Pully);
+            //spike = new Sprite(Spikes);
+            spikes.add(new Spike(Spikes,150));
+            spikes.add(new Spike(Spikes,150));
+
+            box = new Sprite(Box);
+            fire = new Sprite(Fire);
+            torches.add(new Torch(Fire, 100));
+            torches.get(0).setPosition(450, 200);
 
 
-        // Add light source for player
+            // Add light source for player
 
-        lightEffect.addLightSource(player.getX(), player.getY(), 200);
-        // Add light sources for torches
-        for (int i = 0; i < torches.size(); i++) {
-            Torch torch = torches.get(i);
-            lightEffect.addLightSource(torch.getX(), torch.getY(), 50);
+            lightEffect.addLightSource(player.getX(), player.getY(), 200);
+            // Add light sources for torches
+            for (int i = 0; i < torches.size(); i++) {
+                Torch torch = torches.get(i);
+                lightEffect.addLightSource(torch.getX(), torch.getY(), 50);
+            }
+
+            initialiseGame();
+
+        } else if (currentLevel == 2) {
+            tmap.loadMap("maps", "map2.txt");
         }
-
-
 
         initializeBackground();
 
 
-        initialiseGame();
+
 
 
         System.out.println(tmap);
@@ -275,7 +290,6 @@ public class Game extends GameCore
         Background5.show();
 
 
-        // Initialize other backgrounds similarly...
     }
 
     /**
@@ -311,9 +325,20 @@ public class Game extends GameCore
         pully.setPosition(500,150);
         pully.setAnimation(Pully);
         pully.show();
-        spike.setPosition(230,217);
-        spike.setAnimation(Spikes);
-        spike.show();
+        spikes.get(0).setPosition(230,217);
+        spikes.get(1).setPosition(672,415);
+
+        for (int i = 0; i < spikes.size(); i++){
+
+
+
+            spikes.get(i).setAnimation(Spikes);
+            spikes.get(i).activate();
+            spikes.get(i).show();
+        }
+        //spike.setPosition(230,217);
+       // spike.setAnimation(Spikes);
+        //spike.show();
         fire.setPosition(torches.get(0).getX()-12,torches.get(0).getY()-15);
         fire.setScale(1.5f);
         fire.setAnimation(Fire);
@@ -375,7 +400,7 @@ public class Game extends GameCore
         tmap.draw(g,xo,yo);
         pully.setOffsets(xo,yo);
         pully.draw(g);
-        spike.setOffsets(xo,yo);
+
         fire.setOffsets(xo,yo);
         box.setOffsets(xo,yo);
         box.draw(g);
@@ -388,9 +413,13 @@ public class Game extends GameCore
 
             }
         }
-        if(spike.isActive()){
-            spike.draw(g);
+        for (Spike spike : spikes ){
+            if(spike.isActive()){
+                spike.setOffsets(xo,yo);
+                spike.draw(g);
+            }
         }
+
         if (fire.isActive()){fire.draw(g);}
 
 
@@ -508,6 +537,8 @@ public class Game extends GameCore
         // Update Villans
         for (Villan villan : villans) {
             villan.update(elapsed);
+
+            villan.setAnimationSpeed(2.0f / (villans.size()));
             collisions.checkTileCollisionNPC2(villan,tmap);
 
             handleScreenEdge(villan,tmap,elapsed);
@@ -516,6 +547,8 @@ public class Game extends GameCore
             if (projectile.isActive()&& collisions.boundingBoxCollision(projectile,villan)&&villan.isActive()) {
                 projectile.deactivate();
                 villan.setAnimation(Villandeath);
+                villan.setAnimationFrame(0);
+                villan.setAnimationSpeed(1);
                 timer.schedule(new java.util.TimerTask() {
                     @Override
                     public void run() {
@@ -621,10 +654,8 @@ public class Game extends GameCore
         for (Sprite s: clouds)
        		s.update(elapsed);
        	
-        // Now update the sprites animation and position
         player.update(elapsed);
         box.update(elapsed);
-
         projectile.update(elapsed);
 
         Background1.setVelocityX(-player.getVelocityX()*0.05f);
@@ -663,15 +694,18 @@ public class Game extends GameCore
                 }
             }, 1500);
             pully.update(elapsed);
-            spike.deactivate();
+            spikes.get(0).deactivate();
         }
         // player hit spike
-        if(spike.isActive()&& collisions.boundingBoxCollision(player,spike)){
-            player.setHealth(0);
+        for (Spike spike : spikes) {
+            if (spike.isActive() && collisions.boundingBoxCollision(player, spike)) {
+                player.setHealth(0);
+            }
         }
 
-
-
+        if (collisions.boundingBoxCollision(box,spikes.get(1))){
+            spikes.get(1).deactivate();
+        }
 
         //lightEffect.draw(g, player.getX()-10, player.getY()+75);
 
