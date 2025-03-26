@@ -390,7 +390,9 @@ public class Game extends GameCore {// Game constants
         pully.setPosition(400,150);
         pully.setAnimation(Pully);
         pully.show();
-
+        spring.setPosition(448,251);
+        spring.setAnimation(bounce);
+        spring.show();
         spikes.add(new Spike(Spikes,150));
         spikes.get(0).setPosition(560,145);
         spikes.get(1).setPosition(863,361);
@@ -464,6 +466,9 @@ public class Game extends GameCore {// Game constants
         tmap.draw(g,xo,yo);
         pully.setOffsets(xo,yo);
         pully.draw(g);
+
+        spring.setOffsets(xo,yo);
+        spring.draw(g);
 
 
         box.setOffsets(xo,yo);
@@ -766,6 +771,14 @@ public class Game extends GameCore {// Game constants
             }, 1500);
             pully.update(elapsed);
             spikes.get(0).deactivate();
+        }
+        if (collisions.boundingBoxCollision(player,spring)){
+            spring.activate();
+            spring.setAnimationSpeed(2f);
+            spring.update(elapsed);
+            player.setVelocityY(-0.13f);
+            System.out.println(player.getVelocityY()*1.17f);
+
         }
         // player hit spike
         for (Spike spike : spikes) {
