@@ -54,13 +54,13 @@ public class Game extends GameCore {// Game constants
 
     // Game resources
     Animation marinerun, marinestanding, marinedie, marinedash, marinewake, marineshoot, marinedamage;
-    Animation vilanrun, vilanattack, Projectile, Villandeath, Pully, Spikes, Box, Button, Fire,villanrun2,bounce;
+    Animation vilanrun, vilanattack, Projectile, Villandeath, Pully, Spikes, Box, Flag, Fire,villanrun2,bounce;
 
     // Background sprites
     Sprite Background1, Background2, Background3, Background4, Background5;
 
     // Player and other sprites
-    Sprite player, projectile, pully, box,spring;
+    Sprite player, projectile, pully, box,spring , flag;
 
     // Lists for multiple Villans and Torches
     private ArrayList<Villan> villans = new ArrayList<>();
@@ -109,9 +109,12 @@ public class Game extends GameCore {// Game constants
 
         Game game = new Game();
         currentLevel = GameLauncherGUI.getSelectedLevel();
-        game.init();
-        game.run(false, screenWidth, screenHeight);
-
+        if(currentLevel==3){
+        GameInfoGUI.createGameInfoWindow();}
+        if(currentLevel!=3) {
+            game.init();
+            game.run(false, screenWidth, screenHeight);
+        }
 
     }
 
@@ -147,6 +150,7 @@ public class Game extends GameCore {// Game constants
 
         box = new Sprite(Box);
         spring = new Sprite(bounce);
+        flag = new Sprite(Flag);
 
         torches.add(new Torch(Fire, 100));
 
@@ -241,6 +245,13 @@ public class Game extends GameCore {// Game constants
         Box = new Animation();
         Image animBox = new ImageIcon("maps/tile_0028.png").getImage();
         Box.addFrame(animBox,150);
+        Flag = new Animation();
+        Image animFlag1 = new ImageIcon("images/Flag1.png").getImage();
+        Image animFlag2 = new ImageIcon("images/Flag2.png").getImage();
+        Flag.addFrame(animFlag1,150);
+        Flag.addFrame(animFlag2,150);
+
+
         villanrun2 = new Animation();
         villanrun2.loadAnimationFromSheet("images/run.png", 1, 8, 150);
     }
@@ -346,10 +357,9 @@ public class Game extends GameCore {// Game constants
             spikes.get(i).activate();
             spikes.get(i).show();
         }
-        //spike.setPosition(230,217);
-       // spike.setAnimation(Spikes);
-        //spike.show();
 
+        flag.setPosition(150,345);
+        flag.show();
         box.setPosition(550,190);
         box.setAnimation(Box);
         box.show();
@@ -411,12 +421,14 @@ public class Game extends GameCore {// Game constants
             spikes.get(i).show();
         }
 
-
-        box.setPosition(750,190);
+        flag.show();
+        flag.setPosition(150,340);
+        box.setPosition(800,190);
         box.setAnimation(Box);
         box.show();
         lightEffect.setEffectOn(true);
-
+        Sound s = new Sound("sounds/try.wav");
+        s.start();
 
     }
 
@@ -469,6 +481,9 @@ public class Game extends GameCore {// Game constants
 
         spring.setOffsets(xo,yo);
         spring.draw(g);
+
+        flag.setOffsets(xo,yo);
+        flag.draw(g);
 
 
         box.setOffsets(xo,yo);
@@ -679,10 +694,11 @@ public class Game extends GameCore {// Game constants
             timer.schedule(new java.util.TimerTask() {
                 @Override
                 public void run() {
+                    JOptionPane.showMessageDialog(null,"You ded bro RIP !");
                     stop();
 
                 }
-            }, 700);
+            }, 900);
         }
 
 
@@ -724,11 +740,14 @@ public class Game extends GameCore {// Game constants
             player.setVelocityX(0);
         }
 
+        flag.update(elapsed);
+        if(collisions.boundingBoxCollision(player,flag)){
+            JOptionPane.showMessageDialog(null,"Level Completed!");
+            stop();
+        }
 
 
 
-        for (Sprite s: clouds)
-       		s.update(elapsed);
        	
         player.update(elapsed);
         box.update(elapsed);
@@ -777,7 +796,7 @@ public class Game extends GameCore {// Game constants
             spring.setAnimationSpeed(2f);
             spring.update(elapsed);
             player.setVelocityY(-0.13f);
-            System.out.println(player.getVelocityY()*1.17f);
+
 
         }
         // player hit spike
@@ -841,7 +860,7 @@ public class Game extends GameCore {// Game constants
             case KeyEvent.VK_UP     : flap = true; break;
             case KeyEvent.VK_RIGHT  : moveRight = true; break;
             case KeyEvent.VK_LEFT   : moveLeft= true;  break;
-            case KeyEvent.VK_S 		: Sound s = new Sound("sounds/caw.wav");
+            case KeyEvent.VK_S 		: Sound s = new Sound("sounds/try.wav");
                 s.start();
                 break;
 
