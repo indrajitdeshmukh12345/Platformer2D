@@ -82,6 +82,7 @@ public class LightEffect {
         // Draw the final light map on the screen
         g.drawImage(lightMap, 0, 0, null);
     }
+    public List getlighteffectarray(){return lightSources;}
 
     public void setEffectOn(boolean on) {
         this.effectOn = on;
