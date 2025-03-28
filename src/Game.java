@@ -3,26 +3,12 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-
-import java.awt.*;
-import java.util.Timer;
-
-
 import game2D.*;
-
 import javax.swing.*;
-
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
-// Game demonstrates how we can override the GameCore class
-// to create our own 'game'. We usually need to implement at
-// least 'draw' and 'update' (not including any local event handling)
-// to begin the process. You should also add code to the 'init'
-// method that will initialise event handlers etc. 
-
-// Student ID: ???????
-
+// Student ID: 3300017
 
 @SuppressWarnings("serial")
 
@@ -74,6 +60,8 @@ public class Game extends GameCore {// Game constants
     // Cooldown variables
     private long lastDamageTime = 0;
     private long damageCooldown = 2000; // 1 second cooldown
+    long lastPullySoundTime = 0;
+    long pullySoundCooldown = 3000;
     long lasttorchTime = System.currentTimeMillis();
     private boolean isgettingDamaged = false;
     Collisions collisions = new Collisions();
@@ -82,7 +70,6 @@ public class Game extends GameCore {// Game constants
     // Tile map
     TileMap tmap = new TileMap();
     TileMap tmap2 = new TileMap();
-
 
     // Score
     long total;
@@ -100,7 +87,7 @@ public class Game extends GameCore {// Game constants
     /**
 	 * The obligatory main method that creates
      * an instance of our class and starts it running
-     * 
+     *
      * @param args	The list of parameters this program might use (ignored)
      */
 
@@ -122,9 +109,9 @@ public class Game extends GameCore {// Game constants
     /**
      * Initialise the class, e.g. set up variables, load images,
      * create animations, register event handlers.
-     * 
+     *
      * This shows you the general principles but you should create specific
-     * methods for setting up your game that can be called again when you wish to 
+     * methods for setting up your game that can be called again when you wish to
      * restart the game (for example you may only want to load animations once
      * but you could reset the positions of sprites each time you restart the game).
      */
@@ -143,17 +130,14 @@ public class Game extends GameCore {// Game constants
         projectile=new Sprite(Projectile);
         // initialise the pully with animation
         pully=new Sprite(Pully);
-        //spike = new Sprite(Spikes);
         spikes.add(new Spike(Spikes,150));
         spikes.add(new Spike(Spikes,150));
         spikes.add(new Spike(Spikes,150));
-
+        //initialise the other sprites  with animation
         box = new Sprite(Box);
         spring = new Sprite(bounce);
         flag = new Sprite(Flag);
-
         torches.add(new Torch(Fire, 100));
-
         torches.add(new Torch(Fire,150));
 
         // intialise the vilan with an animation
@@ -163,7 +147,6 @@ public class Game extends GameCore {// Game constants
         villans.add(new Villan(villanrun2, -0.03f));
 
          // Add light source for player
-
         lightEffect.addLightSource(player.getX(), player.getY(), 200);
         // Add light sources for torches
         for (int i = 0; i < torches.size(); i++) {
@@ -171,27 +154,21 @@ public class Game extends GameCore {// Game constants
             lightEffect.addLightSource(torch.getX()-25, torch.getY()-25, 50);}
 
         if (currentLevel == 1) {
-
-
             // Load the tile map and print it out so we can check it is valid
             tmap.loadMap("maps", "map.txt");
-
-
-
             initialiseGameL1();
 
         } else if (currentLevel == 2) {
             tmap.loadMap("maps", "map2.txt");
             initialiseGameL2();
         }
-
+        
         initializeBackground();
-
-
-
-
-
         System.out.println(tmap);
+        
+        // initialize MDI SOUND
+        BackgroundMusic backgroundMusic = new BackgroundMusic("sounds/ff3forst.mid", true);
+        backgroundMusic.play();
     }
     private void loadAnimations() {
         marinerun = new Animation();
@@ -250,8 +227,6 @@ public class Game extends GameCore {// Game constants
         Image animFlag2 = new ImageIcon("images/Flag2.png").getImage();
         Flag.addFrame(animFlag1,150);
         Flag.addFrame(animFlag2,150);
-
-
         villanrun2 = new Animation();
         villanrun2.loadAnimationFromSheet("images/run.png", 1, 8, 150);
     }
@@ -261,49 +236,37 @@ public class Game extends GameCore {// Game constants
         Animation backgrownd3 = new Animation();
         Animation backgrownd4 = new Animation();
         Animation backgrownd5 = new Animation();
-
         //Paralax bg
         backgrownd1.addFrame(loadImage("images/Paralaxbg/1.png"), 1000);
         backgrownd2.addFrame(loadImage("images/Paralaxbg/2.png"), 1000);
         backgrownd3.addFrame(loadImage("images/Paralaxbg/3.png"), 1000);
         backgrownd4.addFrame(loadImage("images/Paralaxbg/4.png"), 1000);
         backgrownd5.addFrame(loadImage("images/Paralaxbg/5.png"), 1000);
-
-
-
-
-
         Background1 = new Sprite(backgrownd1);
-
-        //Background.setVelocityX(player.getVelocityX());
         Background1.setScale(0.5f,0.45f);
         Background1.setPosition(0,0);
         Background1.show();
-        Background2 = new Sprite(backgrownd2);
 
+        Background2 = new Sprite(backgrownd2);
         Background2.setVelocityX(-player.getVelocityX()*1.5f);
         Background2.setScale(0.5f,0.45f);
         Background2.setPosition(0,0);
         Background2.show();
-        Background3 = new Sprite(backgrownd3);
 
-        //Background.setVelocityX(player.getVelocityX());
+        Background3 = new Sprite(backgrownd3);
         Background3.setScale(0.5f,0.45f);
         Background3.setPosition(0,80);
         Background3.show();
-        Background4 = new Sprite(backgrownd4);
 
-        //Background.setVelocityX(player.getVelocityX());
+        Background4 = new Sprite(backgrownd4);
         Background4.setScale(0.5f,0.45f);
         Background4.setPosition(0,0);
         Background4.show();
+
         Background5 = new Sprite(backgrownd5);
-        //Background.setVelocityX(player.getVelocityX());
         Background5.setScale(0.5f,0.45f);
         Background5.setPosition(0,0);
         Background5.show();
-
-
     }
 
     /**
@@ -315,6 +278,8 @@ public class Game extends GameCore {// Game constants
     {
     	total = 0;
         torchHealth=100;
+        spring.deactivate();
+        //set villains position -
         villans.get(0).setPosition(390, 100);
         villans.get(1).setPosition(390, 150);
         villans.get(2).setPosition(272,270);
@@ -328,31 +293,32 @@ public class Game extends GameCore {// Game constants
         }
         villans.get(0).setPosition(390,100);
         villans.get(1).setPosition(390,180);
-
+        //set player position -
         player.setPosition(200,150);
         player.setVelocity(0,0);
         player.setHealth(100);
         player.setAnimation(marinestanding);
         player.show();
+        //set Bullets position -
         projectile.setPosition(player.getX()+5,player.getY());
         projectile.setAnimation(Projectile);
         projectile.setScale(0.5f);
         projectile.deactivate();
         projectile.show();
+        //set Pull position -
         pully.setPosition(500,150);
         pully.setAnimation(Pully);
         pully.show();
+        //set Spike position -
         spikes.get(0).setPosition(230,217);
         spikes.get(1).setPosition(672,361);
         spikes.get(2).setPosition(412,361);
+        //set Torch position -
         torches.get(0).setPosition(470, 120);
         torches.get(1).setPosition(425, 320);
 
 
         for (int i = 0; i < spikes.size(); i++){
-
-
-
             spikes.get(i).setAnimation(Spikes);
             spikes.get(i).activate();
             spikes.get(i).show();
@@ -364,10 +330,7 @@ public class Game extends GameCore {// Game constants
         box.setAnimation(Box);
         box.show();
         lightEffect.setEffectOn(true);
-        //lightEffect .addLightSource(fire.getX(), fire.getY());
 
-       // lightEffect.addLightSource(player.getX(), player.getY(),200);
-        //lightEffect .addLightSource(fire.getX(), fire.getY(),50);
 
     }
     public void initialiseGameL2()
@@ -385,7 +348,6 @@ public class Game extends GameCore {// Game constants
             villans.get(i).activate();
             villans.get(i).show();
         }
-
 
         player.setPosition(200,150);
         player.setVelocity(0,0);
@@ -410,12 +372,7 @@ public class Game extends GameCore {// Game constants
         spikes.get(3).setPosition(863,448);
         torches.get(0).setPosition(570, 120);
         torches.get(1).setPosition(425, 320);
-
-
         for (int i = 0; i < spikes.size(); i++){
-
-
-
             spikes.get(i).setAnimation(Spikes);
             spikes.get(i).activate();
             spikes.get(i).show();
@@ -439,14 +396,6 @@ public class Game extends GameCore {// Game constants
      */
     public void draw(Graphics2D g)
     {
-    	// Be careful about the order in which you draw objects - you
-    	// should draw the background first, then work your way 'forward'
-
-    	// First work out how much we need to shift the view in order to
-    	// see where the player is. To do this, we adjust the offset so that
-        // it is relative to the player's position along with a shift
-
-
         int xo = -(int)player.getX() + 200;
         int yo = -(int)player.getY() + 200;
 
@@ -480,7 +429,8 @@ public class Game extends GameCore {// Game constants
         pully.draw(g);
 
         spring.setOffsets(xo,yo);
-        spring.draw(g);
+        if(isActive()){spring.draw(g);}
+
 
         flag.setOffsets(xo,yo);
         flag.draw(g);
@@ -515,16 +465,8 @@ public class Game extends GameCore {// Game constants
         player.setOffsets(xo, yo);
         player.drawTransformed(g);
 
-
-
-
         if (debug)
         {
-
-        	// When in debug mode, you could draw borders around objects
-            // and write messages to the screen with useful information.
-            // Try to avoid printing to the console since it will produce
-            // a lot of output and slow down your game.
             tmap.drawBorder(g, xo, yo, Color.black);
 
             g.setColor(Color.red);
@@ -545,30 +487,25 @@ public class Game extends GameCore {// Game constants
         }
 
         lightEffect.draw(g);
-
-
         // Show score and status information
-        String msg = String.format("Score: %d", total/100);
+
         String fps = String.format("Frames: %d", getFPS());
         String msghealth = String.format("Health: %d", player.getHealth());
         String TorchLevel = String.format("Torch health: %d",torchHealth);
         g.setColor(Color.white);
-        g.drawString(msg, getWidth() - 100, 60);
+
         g.drawString(msghealth, getWidth() - 100, 90);
         g.drawString(TorchLevel, getWidth() - 100, 120);
         g.drawString(fps, getWidth() - 100, 150);
-
-
-
     }
 
     public void drawCollidedTiles(Graphics2D g, TileMap map, int xOffset, int yOffset)
     {
 		if (collidedTiles.size() > 0)
-		{	
+		{
 			int tileWidth = map.getTileWidth();
 			int tileHeight = map.getTileHeight();
-			
+
 			g.setColor(Color.blue);
 			for (Tile t : collidedTiles)
 			{
@@ -576,7 +513,7 @@ public class Game extends GameCore {// Game constants
 			}
 		}
     }
-	
+
     /**
      * Update any sprites and check for collisions
      * 
@@ -615,12 +552,9 @@ public class Game extends GameCore {// Game constants
 
             if (currentTime - lasttorchTime > torchdrainlevel) {
                 torchHealth = torchHealth-1;
-
                 lasttorchTime = currentTime;
-
             }
         }
-        //update villan
         // Update Villans
         for (Villan villan : villans) {
             villan.update(elapsed);
@@ -645,8 +579,6 @@ public class Game extends GameCore {// Game constants
                     }
                 }, 750);
             }
-
-
             // Check for collisions with the player
             if (collisions.boundingBoxCollision(player, villan) && villan.isActive()) {
                 // long currentTime = System.currentTimeMillis();
@@ -658,7 +590,6 @@ public class Game extends GameCore {// Game constants
                     isgettingDamaged = true;
                 } else {
                     isgettingDamaged = false;
-                   // villan.setAnimation(vilanrun);
                 }
             }
         }
@@ -667,8 +598,6 @@ public class Game extends GameCore {// Game constants
         for (int i = 0; i < torches.size(); i++) {
             Torch fire = torches.get(i);
             fire.update(elapsed);
-
-
             // Check for collisions with the player
             if (collisions.boundingBoxCollision(player, fire) && fire.isActive()) {
                 torchHealth = 100; // Restore torch health
@@ -676,8 +605,6 @@ public class Game extends GameCore {// Game constants
                 torches.remove(i);
                 System.out.println(i);
                 lightEffect.removeLightSource(i+1);
-                //lightEffect.removeLightSource(i+1);
-
 
             }
         }
@@ -712,17 +639,13 @@ public class Game extends GameCore {// Game constants
          if(dash){
 
                player.setAnimation(marinedash);
-              // player.setAnimationSpeed(1f);
 
            }
 
         if(shoot){
             if(!moveRight && !moveLeft) {
-
                 player.setAnimation(marineshoot);
                 player.setAnimationFrame(0);
-
-
             }
          }
 
@@ -742,6 +665,8 @@ public class Game extends GameCore {// Game constants
 
         flag.update(elapsed);
         if(collisions.boundingBoxCollision(player,flag)){
+            Sound s = new Sound("sounds/win.wav");
+            s.start();
             JOptionPane.showMessageDialog(null,"Level Completed!");
             stop();
         }
@@ -780,6 +705,21 @@ public class Game extends GameCore {// Game constants
         collision = collisions.isCollision();
 
         if (collisions.boundingBoxCollision(player,pully)){
+
+
+            // Check if the cooldown has passed
+
+            if (currentTime - lastPullySoundTime > pullySoundCooldown) {
+                Sound snd = new Sound("sounds/lever.wav");
+
+                if (!snd.isAlive()) {
+                    snd.start();
+                }
+
+                lastPullySoundTime = currentTime; // Update the timestamp
+            }
+
+
             pully.activate();
             pully.setAnimationSpeed(1f);
             timer.schedule(new java.util.TimerTask() {
@@ -792,6 +732,8 @@ public class Game extends GameCore {// Game constants
             spikes.get(0).deactivate();
         }
         if (collisions.boundingBoxCollision(player,spring)){
+            Sound s = new Sound("sounds/spring.wav");
+            s.start();
             spring.activate();
             spring.setAnimationSpeed(2f);
             spring.update(elapsed);
@@ -809,8 +751,6 @@ public class Game extends GameCore {// Game constants
         if (collisions.boundingBoxCollision(box,spikes.get(1))){
             spikes.get(1).deactivate();
         }
-
-        //lightEffect.draw(g, player.getX()-10, player.getY()+75);
 
     }
 
