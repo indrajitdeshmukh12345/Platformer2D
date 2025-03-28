@@ -62,6 +62,10 @@ public class Game extends GameCore {// Game constants
     private long damageCooldown = 2000; // 1 second cooldown
     long lastPullySoundTime = 0;
     long pullySoundCooldown = 3000;
+    long WalkSoundCooldown = 500;
+    long lastWalkSoundTime = 0;
+    long deadSoundCooldown = 90000;
+    long lastdeadSoundTime = 0;
     long lasttorchTime = System.currentTimeMillis();
     private boolean isgettingDamaged = false;
     Collisions collisions = new Collisions();
@@ -73,6 +77,8 @@ public class Game extends GameCore {// Game constants
 
     // Score
     long total;
+    //Sounds
+    BackgroundMusic backgroundMusic;
 
     // Mouse coordinates
     int mouseX, mouseY;
@@ -165,9 +171,11 @@ public class Game extends GameCore {// Game constants
         
         initializeBackground();
         System.out.println(tmap);
+
         
         // initialize MDI SOUND
-        BackgroundMusic backgroundMusic = new BackgroundMusic("sounds/ff3forst.mid", true);
+        backgroundMusic = new BackgroundMusic("sounds/ff3forst.mid", true);
+        backgroundMusic.setVolume(50);
         backgroundMusic.play();
     }
     private void loadAnimations() {
@@ -539,8 +547,10 @@ public class Game extends GameCore {// Game constants
         if(player.getHealth()<=0){dead= true;}
         if(collisions.boundingBoxCollision(player,box)){
             moveSpeed = 0.02f;
+            WalkSoundCooldown = 750;
             box.setVelocityX(player.getVelocityX());
-            }else {moveSpeed = 0.05f;box.setVelocityX(0.0f);}
+            player.setAnimationSpeed(0.6f);
+            }else {moveSpeed = 0.05f;box.setVelocityX(0.0f);WalkSoundCooldown = 550;player.setAnimationSpeed(1f);}
 
         player.setAnimationSpeed(1.0f);
         long currentTime = System.currentTimeMillis();
@@ -618,6 +628,18 @@ public class Game extends GameCore {// Game constants
 
        	if(dead){
             player.setAnimation(marinedie);
+            Sound die = new Sound("sounds/die.wav");
+            backgroundMusic.stop();
+            if (currentTime - lastdeadSoundTime > deadSoundCooldown) {
+
+                if (!die.isAlive()) {
+                    die.start();
+                }
+
+                lastdeadSoundTime = currentTime; // Update the timestamp
+            }
+
+
             timer.schedule(new java.util.TimerTask() {
                 @Override
                 public void run() {
@@ -632,6 +654,8 @@ public class Game extends GameCore {// Game constants
        	if (flap&&isgettingDamaged==false)
        	{
             if(collision) {
+                Sound jumpSound = new Sound("sounds/jump.wav");
+                jumpSound.start();
                 player.setVelocityY(fly);
             }
            }
@@ -648,13 +672,28 @@ public class Game extends GameCore {// Game constants
                 player.setAnimationFrame(0);
             }
          }
+        // Check if the player is moving
+        if (moveRight&& collision || moveLeft && collision) {
 
-        if (moveRight && !moveLeft && isgettingDamaged==false) {
+            if (currentTime - lastWalkSoundTime > WalkSoundCooldown) {
+                Sound snd = new Sound("sounds/walk.wav");
+
+                if (!snd.isAlive()) {
+                    snd.start();
+                }
+
+                lastWalkSoundTime = currentTime; // Update the timestamp
+            }
+        }
+
+
+        if (moveRight && !moveLeft ) {
+
             player.setVelocityX(moveSpeed);
             player.setScale(1.0f, 1f);
             player.setAnimation(marinerun);
         }
-        else if (moveLeft && !moveRight && isgettingDamaged==false) {
+        else if (moveLeft && !moveRight ) {
             player.setVelocityX(-moveSpeed);
             player.setScale(-1.0f, 1f);
             player.setAnimation(marinerun);
@@ -665,6 +704,7 @@ public class Game extends GameCore {// Game constants
 
         flag.update(elapsed);
         if(collisions.boundingBoxCollision(player,flag)){
+            backgroundMusic.stop();
             Sound s = new Sound("sounds/win.wav");
             s.start();
             JOptionPane.showMessageDialog(null,"Level Completed!");
@@ -800,8 +840,8 @@ public class Game extends GameCore {// Game constants
             case KeyEvent.VK_UP     : flap = true; break;
             case KeyEvent.VK_RIGHT  : moveRight = true; break;
             case KeyEvent.VK_LEFT   : moveLeft= true;  break;
-            case KeyEvent.VK_S 		: Sound s = new Sound("sounds/try.wav");
-                s.start();
+            case KeyEvent.VK_S 		: if(backgroundMusic.isPlaying()){backgroundMusic.pause();} else {backgroundMusic.play();}
+
                 break;
 
             case KeyEvent.VK_ESCAPE : stop(); break;
@@ -853,7 +893,8 @@ public class Game extends GameCore {// Game constants
         // player shoots
         if (e.getButton() == MouseEvent.BUTTON1 && !projectile.isActive()) { // Left mouse button
             torchHealth = torchHealth-20;
-
+            Sound snd = new Sound("sounds/shoot.wav");
+            snd.start();
             // Get the mouse coordinates relative to the screen
             int screenMouseX = e.getX();
             int screenMouseY = e.getY();

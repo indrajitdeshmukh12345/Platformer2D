@@ -4,12 +4,14 @@ import javax.sound.midi.*;
 import java.io.File;
 import java.io.IOException;
 
-public class BackgroundMusic  implements Runnable   {
+public class BackgroundMusic implements Runnable {
 
     private String midiFilePath;  // Path to the MIDI file
     private Sequencer sequencer;  // MIDI sequencer to play the music
     private boolean loop;         // Flag to determine if the music should loop
     private boolean isPlaying;    // Flag to check if the music is currently playing
+    private Synthesizer synthesizer; // Synthesizer to control volume
+    private MidiChannel[] channels; // MIDI channels to adjust volume
 
     /**
      * Constructor for BackgroundMusic.
@@ -41,6 +43,16 @@ public class BackgroundMusic  implements Runnable   {
         if (loop) {
             sequencer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);  // Loop the music indefinitely
         }
+
+        // Initialize synthesizer and channels for volume control
+        if (sequencer instanceof Synthesizer) {
+            synthesizer = (Synthesizer) sequencer;
+        } else {
+            synthesizer = MidiSystem.getSynthesizer();
+            synthesizer.open();
+            sequencer.getTransmitter().setReceiver(synthesizer.getReceiver());
+        }
+        channels = synthesizer.getChannels();
     }
 
     /**
@@ -83,6 +95,9 @@ public class BackgroundMusic  implements Runnable   {
             sequencer.close();  // Close the sequencer
             isPlaying = false;
         }
+        if (synthesizer != null && synthesizer.isOpen()) {
+            synthesizer.close();  // Close the synthesizer
+        }
     }
 
     /**
@@ -92,6 +107,21 @@ public class BackgroundMusic  implements Runnable   {
      */
     public boolean isPlaying() {
         return isPlaying;
+    }
+
+    /**
+     * Changes the volume of the background music.
+     *
+     * @param volume The volume level (0 to 127).
+     */
+    public void setVolume(int volume) {
+        if (channels != null) {
+            for (MidiChannel channel : channels) {
+                if (channel != null) {
+                    channel.controlChange(7, volume);  // 7 is the controller number for volume
+                }
+            }
+        }
     }
 
     /**
