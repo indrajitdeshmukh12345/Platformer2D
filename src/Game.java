@@ -64,8 +64,14 @@ public class Game extends GameCore {// Game constants
     long pullySoundCooldown = 3000;
     long WalkSoundCooldown = 500;
     long lastWalkSoundTime = 0;
-    long deadSoundCooldown = 90000;
+    long deadSoundCooldown = 9000;
     long lastdeadSoundTime = 0;
+    long slideSoundCooldown = 8000;
+    long lastslideSoundTime = 0;
+    long slidegrowlCooldown = 3000;
+    long lasgrowlSoundTime = 0;
+    long SpringCooldown = 500;
+    long springSoundTime = 0;
     long lasttorchTime = System.currentTimeMillis();
     private boolean isgettingDamaged = false;
     Collisions collisions = new Collisions();
@@ -79,6 +85,7 @@ public class Game extends GameCore {// Game constants
     long total;
     //Sounds
     BackgroundMusic backgroundMusic;
+    SoundLoop firesound;
 
     // Mouse coordinates
     int mouseX, mouseY;
@@ -102,7 +109,9 @@ public class Game extends GameCore {// Game constants
 
         Game game = new Game();
         currentLevel = GameLauncherGUI.getSelectedLevel();
+
         if(currentLevel==3){
+
         GameInfoGUI.createGameInfoWindow();}
         if(currentLevel!=3) {
             game.init();
@@ -174,9 +183,11 @@ public class Game extends GameCore {// Game constants
 
         
         // initialize MDI SOUND
-        backgroundMusic = new BackgroundMusic("sounds/ff3forst.mid", true);
-        backgroundMusic.setVolume(50);
+        backgroundMusic = new BackgroundMusic("sounds/background2.mid", true);
         backgroundMusic.play();
+
+
+
     }
     private void loadAnimations() {
         marinerun = new Animation();
@@ -334,7 +345,7 @@ public class Game extends GameCore {// Game constants
 
         flag.setPosition(150,345);
         flag.show();
-        box.setPosition(550,190);
+        box.setPosition(590,190);
         box.setAnimation(Box);
         box.show();
         lightEffect.setEffectOn(true);
@@ -370,7 +381,7 @@ public class Game extends GameCore {// Game constants
         pully.setPosition(400,150);
         pully.setAnimation(Pully);
         pully.show();
-        spring.setPosition(448,251);
+        spring.setPosition(465,251);
         spring.setAnimation(bounce);
         spring.show();
         spikes.add(new Spike(Spikes,150));
@@ -529,6 +540,8 @@ public class Game extends GameCore {// Game constants
      */    
     public void update(long elapsed)
     {
+        long currentTime = System.currentTimeMillis();
+
         int xo = -(int)player.getX() + 200; // Camera offset X
         int yo = -(int)player.getY() + 200; // Camera offset Y
         lightEffect.updateLightSource(0,player.getX(), player.getY(),200, xo, yo);
@@ -546,14 +559,23 @@ public class Game extends GameCore {// Game constants
 
         if(player.getHealth()<=0){dead= true;}
         if(collisions.boundingBoxCollision(player,box)){
+
             moveSpeed = 0.02f;
             WalkSoundCooldown = 750;
             box.setVelocityX(player.getVelocityX());
             player.setAnimationSpeed(0.6f);
-            }else {moveSpeed = 0.05f;box.setVelocityX(0.0f);WalkSoundCooldown = 550;player.setAnimationSpeed(1f);}
+            Sound slide = new Sound("sounds/sliding.wav");
+            if (currentTime - lastslideSoundTime > slideSoundCooldown) {
+
+                if (!slide.isAlive()) {
+                    slide.start();
+                }
+
+                lastslideSoundTime = currentTime; // Update the timestamp
+            }
+            }else {moveSpeed = 0.05f;box.setVelocityX(0.0f);WalkSoundCooldown = 750;player.setAnimationSpeed(1f);}
 
         player.setAnimationSpeed(1.0f);
-        long currentTime = System.currentTimeMillis();
         if(torchHealth<0){lightEffect.setEffectOn(false);}
 
         if(lightEffect.isEffectOn()){
@@ -568,6 +590,28 @@ public class Game extends GameCore {// Game constants
         // Update Villans
         for (Villan villan : villans) {
             villan.update(elapsed);
+
+            Sound growl = new Sound("sounds/growl.wav");
+            // Calculate the distance between the player and the sprite
+            float playerX = player.getX();
+            float playerY = player.getY();
+
+            float spriteX = villan.getX();
+            float spriteY = villan.getY();
+
+            float distance = (float) Math.sqrt(Math.pow(playerX - spriteX, 2) + Math.pow(playerY - spriteY, 2));
+            if (currentTime - lasgrowlSoundTime > slidegrowlCooldown&&distance<80&&villan.isActive()) {
+
+                if (!growl.isAlive()) {
+                    growl.start();
+
+                }
+
+                lasgrowlSoundTime = currentTime; // Update the timestamp
+            }
+
+
+
 
             villan.setAnimationSpeed(2.0f / (villans.size()));
             collisions.checkTileCollisionNPC2(villan,tmap);
@@ -598,6 +642,8 @@ public class Game extends GameCore {// Game constants
                     player.setHealth(player.getHealth() - 50);
                     lastDamageTime = currentTime;
                     isgettingDamaged = true;
+                    Sound hit = new Sound("sounds/hit.wav");
+                    hit.start();
                 } else {
                     isgettingDamaged = false;
                 }
@@ -609,6 +655,29 @@ public class Game extends GameCore {// Game constants
             Torch fire = torches.get(i);
             fire.update(elapsed);
             // Check for collisions with the player
+
+            // Sound Effect
+
+            // Calculate the distance between the player and the sprite
+            float playerX = player.getX();
+            float playerY = player.getY();
+
+            float spriteX = torches.get(i).getX();
+            float spriteY = torches.get(i).getY();
+
+            float distance = (float) Math.sqrt(Math.pow(playerX - spriteX, 2) + Math.pow(playerY - spriteY, 2));
+
+
+            Sound firesound = new Sound("sounds/fire3.wav");
+
+            if (currentTime - lastdeadSoundTime > deadSoundCooldown&&distance<105) {
+
+                if (!firesound.isAlive()) {
+                    firesound.start();
+                }
+
+                lastdeadSoundTime = currentTime; // Update the timestamp
+            }
             if (collisions.boundingBoxCollision(player, fire) && fire.isActive()) {
                 torchHealth = 100; // Restore torch health
                 fire.deactivate(); // Deactivate the torch
@@ -617,6 +686,7 @@ public class Game extends GameCore {// Game constants
                 lightEffect.removeLightSource(i+1);
 
             }
+
         }
 
 
@@ -654,7 +724,7 @@ public class Game extends GameCore {// Game constants
        	if (flap&&isgettingDamaged==false)
        	{
             if(collision) {
-                Sound jumpSound = new Sound("sounds/jump.wav");
+                Sound jumpSound = new Sound("sounds/jump5.wav");
                 jumpSound.start();
                 player.setVelocityY(fly);
             }
@@ -773,7 +843,14 @@ public class Game extends GameCore {// Game constants
         }
         if (collisions.boundingBoxCollision(player,spring)){
             Sound s = new Sound("sounds/spring.wav");
-            s.start();
+            if (currentTime - springSoundTime > SpringCooldown) {
+
+                if (!s.isAlive()) {
+                    s.start();
+                }
+
+                springSoundTime = currentTime; // Update the timestamp
+            }
             spring.activate();
             spring.setAnimationSpeed(2f);
             spring.update(elapsed);
@@ -791,6 +868,11 @@ public class Game extends GameCore {// Game constants
         if (collisions.boundingBoxCollision(box,spikes.get(1))){
             spikes.get(1).deactivate();
         }
+
+
+
+
+
 
     }
 
@@ -881,6 +963,8 @@ public class Game extends GameCore {// Game constants
 
             dash = true;
             player.setAnimationFrame(0);
+            Sound dash  = new Sound("sounds/dash.wav");
+            dash.start();
 
             if (player.getScaleX() < 0.0F && player.getAnimation()==marinestanding ) {
                 player.setPosition(player.getX()-80, player.getY());

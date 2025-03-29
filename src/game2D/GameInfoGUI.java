@@ -13,6 +13,7 @@ public class GameInfoGUI {
         frame.setLayout(new BorderLayout());
         frame.getContentPane().setBackground(Color.BLACK);
 
+
         // Create a JTextArea to display the game information
         JTextArea textArea = new JTextArea();
         textArea.setEditable(false);
@@ -54,6 +55,8 @@ public class GameInfoGUI {
 
         // Center the window on the screen
         frame.setLocationRelativeTo(null);
+        Sound menu = new Sound("sounds/menu.wav");
+        menu.start();
 
         // Make the window visible
         frame.setVisible(true);
