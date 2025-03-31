@@ -40,13 +40,13 @@ public class Game extends GameCore {// Game constants
 
     // Game resources
     Animation marinerun, marinestanding, marinedie, marinedash, marinewake, marineshoot, marinedamage;
-    Animation vilanrun, vilanattack, Projectile, Villandeath, Pully, Spikes, Box, Flag, Fire,villanrun2,bounce;
+    Animation vilanrun, vilanattack, Projectile,Projectile2, Villandeath, Pully, Spikes, Box, Flag, Fire,villanrun2,bounce, bossrun,bossdeath,bossdash;
 
     // Background sprites
     Sprite Background1, Background2, Background3, Background4, Background5;
 
     // Player and other sprites
-    Sprite player, projectile, pully, box,spring , flag;
+    Sprite player, projectile,projectile2, pully, box,spring , flag,boss;
 
     // Lists for multiple Villans and Torches
     private ArrayList<Villan> villans = new ArrayList<>();
@@ -64,8 +64,10 @@ public class Game extends GameCore {// Game constants
     long pullySoundCooldown = 3000;
     long WalkSoundCooldown = 500;
     long lastWalkSoundTime = 0;
-    long deadSoundCooldown = 9000;
+    long deadSoundCooldown = 90000;
     long lastdeadSoundTime = 0;
+    long fireSoundCooldown = 9000;
+    long lastfireSoundTime = 0;
     long slideSoundCooldown = 8000;
     long lastslideSoundTime = 0;
     long slidegrowlCooldown = 3000;
@@ -85,10 +87,7 @@ public class Game extends GameCore {// Game constants
     long total;
     //Sounds
     BackgroundMusic backgroundMusic;
-    SoundLoop firesound;
 
-    // Mouse coordinates
-    int mouseX, mouseY;
     /**
      * level selection
      */
@@ -110,9 +109,7 @@ public class Game extends GameCore {// Game constants
         Game game = new Game();
         currentLevel = GameLauncherGUI.getSelectedLevel();
 
-        if(currentLevel==3){
-
-        GameInfoGUI.createGameInfoWindow();}
+        if(currentLevel==3){GameInfoGUI.createGameInfoWindow();}
         if(currentLevel!=3) {
             game.init();
             game.run(false, screenWidth, screenHeight);
@@ -143,6 +140,8 @@ public class Game extends GameCore {// Game constants
         player = new Sprite(marinestanding);
         //initialise the projectile with an animation
         projectile=new Sprite(Projectile);
+        projectile2 = new Sprite(Projectile2);
+
         // initialise the pully with animation
         pully=new Sprite(Pully);
         spikes.add(new Spike(Spikes,150));
@@ -160,6 +159,10 @@ public class Game extends GameCore {// Game constants
         villans.add(new Villan(vilanrun, -0.03f));
         villans.add(new Villan(villanrun2, -0.03f));
         villans.add(new Villan(villanrun2, -0.03f));
+
+        boss = new Sprite(bossrun);
+        boss.setVelocityX(-0.04f);
+        boss.setScale(-1f);
 
          // Add light source for player
         lightEffect.addLightSource(player.getX(), player.getY(), 200);
@@ -223,6 +226,9 @@ public class Game extends GameCore {// Game constants
         Projectile = new Animation();
         Image animProjec = new ImageIcon("images/Projectile.png").getImage();
         Projectile.addFrame(animProjec, 150);
+        Projectile2 = new Animation();
+        Image projctile2 = new ImageIcon("images/Projectile2.png").getImage();
+        Projectile2.addFrame(projctile2, 150);
 
         Pully = new Animation();
         Pully.loadAnimationFromSheet("images/Pully.png", 3, 1, 300);
@@ -236,18 +242,29 @@ public class Game extends GameCore {// Game constants
         Image animspring2 = new ImageIcon("images/spring2.png").getImage();
         bounce.addFrame(animspring1, 150);
         bounce.addFrame(animspring2, 150);
+
         Fire = new Animation();
         Fire.loadAnimationFromSheet("images/fire.png", 8, 1, 150);
+
         Box = new Animation();
         Image animBox = new ImageIcon("maps/tile_0028.png").getImage();
         Box.addFrame(animBox,150);
+
         Flag = new Animation();
         Image animFlag1 = new ImageIcon("images/Flag1.png").getImage();
         Image animFlag2 = new ImageIcon("images/Flag2.png").getImage();
         Flag.addFrame(animFlag1,150);
         Flag.addFrame(animFlag2,150);
+
         villanrun2 = new Animation();
         villanrun2.loadAnimationFromSheet("images/run.png", 1, 8, 150);
+        bossrun = new Animation();
+        bossrun.loadAnimationFromSheet("images/bossrun.png", 8, 1, 150);
+        bossdeath = new Animation();
+        bossdeath.loadAnimationFromSheet("images/bossrun.png", 10, 1, 150);
+        bossdash = new Animation();
+        bossdash.loadAnimationFromSheet("images/bossdash.png", 4, 1, 150);
+
     }
     private void initializeBackground() {
         Animation backgrownd1 = new Animation();
@@ -302,6 +319,9 @@ public class Game extends GameCore {// Game constants
         villans.get(0).setPosition(390, 100);
         villans.get(1).setPosition(390, 150);
         villans.get(2).setPosition(272,270);
+        boss.setPosition(350,410);
+        boss.show();
+        boss.setScale(-1,1);
         for (int i = 0; i < villans.size(); i++){
 
             villans.get(i).setVelocity(-0.03f,0);
@@ -324,6 +344,11 @@ public class Game extends GameCore {// Game constants
         projectile.setScale(0.5f);
         projectile.deactivate();
         projectile.show();
+        projectile2.setPosition(boss.getX()+5,boss.getY());
+        projectile2.setAnimation(Projectile2);
+        projectile2.setScale(0.5f);
+        projectile2.deactivate();
+        projectile2.show();
         //set Pull position -
         pully.setPosition(500,150);
         pully.setAnimation(Pully);
@@ -343,7 +368,7 @@ public class Game extends GameCore {// Game constants
             spikes.get(i).show();
         }
 
-        flag.setPosition(150,345);
+        flag.setPosition(550,409);
         flag.show();
         box.setPosition(590,190);
         box.setAnimation(Box);
@@ -378,10 +403,15 @@ public class Game extends GameCore {// Game constants
         projectile.setScale(0.5f);
         projectile.deactivate();
         projectile.show();
+        projectile2.setPosition(player.getX()+5,player.getY());
+        projectile2.setAnimation(Projectile2);
+        projectile2.setScale(0.5f);
+        projectile2.deactivate();
+        projectile2.show();
         pully.setPosition(400,150);
         pully.setAnimation(Pully);
         pully.show();
-        spring.setPosition(465,251);
+        spring.setPosition(455,251);
         spring.setAnimation(bounce);
         spring.show();
         spikes.add(new Spike(Spikes,150));
@@ -466,6 +496,10 @@ public class Game extends GameCore {// Game constants
 
             }
         }
+
+        boss.setOffsets(xo, yo);
+        if(boss.isActive()){boss.drawTransformed(g);}
+
         for (Spike spike : spikes ){
             if(spike.isActive()){
                 spike.setOffsets(xo,yo);
@@ -494,6 +528,8 @@ public class Game extends GameCore {// Game constants
                 villan.drawBoundingBox(g);
             }
             projectile.drawBoundingBox(g);
+            projectile2.drawBoundingBox(g);
+            boss.drawBoundingBox(g);
 
         	g.drawString(String.format("Player: %.0f,%.0f", player.getX(),player.getY()),
         								getWidth() - 100, 70);
@@ -503,6 +539,10 @@ public class Game extends GameCore {// Game constants
         if (projectile != null && projectile.isActive()) {
             projectile.setOffsets(xo, yo);
             projectile.drawTransformed(g);
+        }
+        if (projectile2 != null && projectile2.isActive()) {
+            projectile2.setOffsets(xo, yo);
+            projectile2.drawTransformed(g);
         }
 
         lightEffect.draw(g);
@@ -556,6 +596,8 @@ public class Game extends GameCore {// Game constants
         //Remove bullet if it goes out of bounds
         if(projectile.getY()>screenHeight){projectile.deactivate();}
         if(projectile.getX()>screenWidth){projectile.deactivate();}
+        if(projectile2.getY()>screenHeight){projectile2.deactivate();}
+        if(projectile2.getX()>screenWidth){projectile2.deactivate();}
 
         if(player.getHealth()<=0){dead= true;}
         if(collisions.boundingBoxCollision(player,box)){
@@ -588,6 +630,8 @@ public class Game extends GameCore {// Game constants
             }
         }
         // Update Villans
+
+
         for (Villan villan : villans) {
             villan.update(elapsed);
 
@@ -633,6 +677,7 @@ public class Game extends GameCore {// Game constants
                     }
                 }, 750);
             }
+
             // Check for collisions with the player
             if (collisions.boundingBoxCollision(player, villan) && villan.isActive()) {
                 // long currentTime = System.currentTimeMillis();
@@ -649,14 +694,60 @@ public class Game extends GameCore {// Game constants
                 }
             }
         }
+        //Update boss and projectile2
+
+        boss.update(elapsed);
+        collisions.checkTileCollisionNPC2(boss,tmap);
+        if (projectile.isActive()&& collisions.boundingBoxCollision(projectile,boss)&&boss.isActive()) {
+            projectile.deactivate();
+            boss.setAnimation(bossdeath);
+            boss.setAnimationFrame(0);
+            boss.setAnimationSpeed(1);
+            timer.schedule(new java.util.TimerTask() {
+                @Override
+                public void run() {
+                    boss.deactivate();
+
+
+                }
+            }, 1050);
+        }
+        float distanceboss = (float) Math.sqrt(Math.pow(player.getX() - boss.getX(), 2) + Math.pow(player.getY() - boss.getY(), 2));
+        float distinY = boss.getY()-player.getY();
+        if(!projectile2.isActive()&&distanceboss>70&&distanceboss<200&&boss.isActive()) {
+
+            // Calculate the angle between the player and the mouse position in world coordinates
+            double angle = Math.atan2((player.getY() - boss.getY()), player.getX() - boss.getX());
+            float speed = projectileSpeed / 1.5f;
+            float velocityX = (float) (speed * cos(angle));
+            float velocityY = (float) (speed * sin(angle));
+
+            // Offset to start bullet from the player's gun position
+            float bulletStartX = boss.getX() + boss.getWidth() / 2;
+            float bulletStartY = (boss.getY() + boss.getHeight() / 2)-10;
+
+            projectile2.setPosition(bulletStartX, bulletStartY);
+            projectile2.activate();
+
+            // Set the velocity of the projectile
+            projectile2.setVelocityX(velocityX);
+            projectile2.setVelocityY(velocityY);
+            System.out.println(ideal);
+
+        }
+            if (projectile2.isActive() && collisions.boundingBoxCollision(projectile2, player)&&!ideal) {
+                projectile2.deactivate();
+                player.setHealth(player.getHealth()-20);
+
+
+            }
+
         //update Torches
 
         for (int i = 0; i < torches.size(); i++) {
             Torch fire = torches.get(i);
             fire.update(elapsed);
-            // Check for collisions with the player
 
-            // Sound Effect
 
             // Calculate the distance between the player and the sprite
             float playerX = player.getX();
@@ -667,17 +758,19 @@ public class Game extends GameCore {// Game constants
 
             float distance = (float) Math.sqrt(Math.pow(playerX - spriteX, 2) + Math.pow(playerY - spriteY, 2));
 
+            // Sound Effect
 
             Sound firesound = new Sound("sounds/fire3.wav");
 
-            if (currentTime - lastdeadSoundTime > deadSoundCooldown&&distance<105) {
+            if (currentTime - lastfireSoundTime > fireSoundCooldown&&distance<105) {
 
                 if (!firesound.isAlive()) {
                     firesound.start();
                 }
 
-                lastdeadSoundTime = currentTime; // Update the timestamp
+                lastfireSoundTime = currentTime; // Update the timestamp
             }
+            // Check for collisions with the player
             if (collisions.boundingBoxCollision(player, fire) && fire.isActive()) {
                 torchHealth = 100; // Restore torch health
                 fire.deactivate(); // Deactivate the torch
@@ -690,13 +783,15 @@ public class Game extends GameCore {// Game constants
         }
 
 
-
+        ideal = true;
 
         if(ideal&&isgettingDamaged==false){
             player.setAnimation(marinestanding);
         }
 
+
        	if(dead){
+               ideal=false;
             player.setAnimation(marinedie);
             Sound die = new Sound("sounds/die.wav");
             backgroundMusic.stop();
@@ -724,6 +819,7 @@ public class Game extends GameCore {// Game constants
        	if (flap&&isgettingDamaged==false)
        	{
             if(collision) {
+                ideal =false;
                 Sound jumpSound = new Sound("sounds/jump5.wav");
                 jumpSound.start();
                 player.setVelocityY(fly);
@@ -731,7 +827,7 @@ public class Game extends GameCore {// Game constants
            }
 
          if(dash){
-
+             ideal =false;
                player.setAnimation(marinedash);
 
            }
@@ -740,6 +836,7 @@ public class Game extends GameCore {// Game constants
             if(!moveRight && !moveLeft) {
                 player.setAnimation(marineshoot);
                 player.setAnimationFrame(0);
+                ideal =false;
             }
          }
         // Check if the player is moving
@@ -747,7 +844,7 @@ public class Game extends GameCore {// Game constants
 
             if (currentTime - lastWalkSoundTime > WalkSoundCooldown) {
                 Sound snd = new Sound("sounds/walk.wav");
-
+                ideal =false;
                 if (!snd.isAlive()) {
                     snd.start();
                 }
@@ -773,7 +870,7 @@ public class Game extends GameCore {// Game constants
         }
 
         flag.update(elapsed);
-        if(collisions.boundingBoxCollision(player,flag)){
+        if(collisions.boundingBoxCollision(player,flag)&&!boss.isActive()){
             backgroundMusic.stop();
             Sound s = new Sound("sounds/win.wav");
             s.start();
@@ -787,6 +884,7 @@ public class Game extends GameCore {// Game constants
         player.update(elapsed);
         box.update(elapsed);
         projectile.update(elapsed);
+        projectile2.update(elapsed);
 
         Background1.setVelocityX(-player.getVelocityX()*0.05f);
         Background2.setVelocityX(-player.getVelocityX()*0.1f);
@@ -812,6 +910,7 @@ public class Game extends GameCore {// Game constants
 
 
         collisions.checkProjectileCollision(projectile,tmap);
+        collisions.checkProjectileCollision(projectile2,tmap);
         collision = collisions.isCollision();
 
         if (collisions.boundingBoxCollision(player,pully)){

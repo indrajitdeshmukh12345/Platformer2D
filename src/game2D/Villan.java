@@ -32,6 +32,6 @@ public class Villan extends Sprite {
     public void update(long elapsedTime) {
         super.update(elapsedTime);
         setAnimationSpeed(animationSpeed);
-        // Add specific behavior for the villan here
+
     }
 }

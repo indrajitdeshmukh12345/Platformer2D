@@ -23,7 +23,7 @@ public class GameInfoGUI {
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
 
-        // Add the game information text
+        //  game information text
         String gameInfo = "How to Play:\n" +
                 "1. Use the arrow keys to move your character.\n" +
                 "2. Press 'UP arrow keys' to jump.\n" +
@@ -48,7 +48,7 @@ public class GameInfoGUI {
                 "- Reach the end of the level before the torch health becomes zero to win!";
         textArea.setText(gameInfo);
 
-        // Add the text area to a JScrollPane for scrolling
+        // text area , JScrollPane, for scrolling
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         frame.add(scrollPane, BorderLayout.CENTER);
