@@ -717,14 +717,14 @@ public class Game extends GameCore {// Game constants
         if(!projectile2.isActive()&&distanceboss>70&&distanceboss<200&&boss.isActive()) {
 
             // Calculate the angle between the player and the mouse position in world coordinates
-            double angle = Math.atan2((player.getY() - boss.getY()), player.getX() - boss.getX());
+            double angle = Math.atan2((player.getY() - boss.getY())-15, player.getX() - boss.getX());
             float speed = projectileSpeed / 1.5f;
             float velocityX = (float) (speed * cos(angle));
             float velocityY = (float) (speed * sin(angle));
 
             // Offset to start bullet from the player's gun position
             float bulletStartX = boss.getX() + boss.getWidth() / 2;
-            float bulletStartY = (boss.getY() + boss.getHeight() / 2)-10;
+            float bulletStartY = (boss.getY() + boss.getHeight() / 2);
 
             projectile2.setPosition(bulletStartX, bulletStartY);
             projectile2.activate();
@@ -732,10 +732,9 @@ public class Game extends GameCore {// Game constants
             // Set the velocity of the projectile
             projectile2.setVelocityX(velocityX);
             projectile2.setVelocityY(velocityY);
-            System.out.println(ideal);
 
         }
-            if (projectile2.isActive() && collisions.boundingBoxCollision(projectile2, player)&&!ideal) {
+            if (projectile2.isActive() && collisions.boundingBoxCollision(projectile2, player)&&player.getAnimation()!=marinestanding) {
                 projectile2.deactivate();
                 player.setHealth(player.getHealth()-20);
 
