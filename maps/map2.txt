@@ -1,4 +1,4 @@
-128 35 18 18
+65 27 18 18
 // The first line should contain the width and height of the
 // map and the width and height of each tile. A list of character to
 // tile mappings is then provided where each character is preceded by a
@@ -72,40 +72,33 @@
 #-=Tile_0123.png
 // The actual tile map is preceded by the #map line
 #map
-...............................................................kk..............................................................i
-...............................................................kk..............................................................i
-.....................................................r...q.....kk..............................................................i
-.....................................................kggggggggghx..............................................................i
-1.2..14.q...........qrq..............................jxxxxxxxddlx..............................................................i
-uvvvgggggh........kggggh.............................jxxxxxxxddlx..............................................................i
-xxxxxxxxxl........jxxoop.............................jxxxxxxxddlx..............................................................i
-xxxxxxxxxl........jxl.................z..............jxxxxxxxddlx..............................................................i
-xxxxxxxxxl.......rjxl.................z..............jxxxxxxxddlx..............................................................i
-uvvvvgggggggh...kgxxxggh...zz..uvgggggh..............jxxxxxxxddlx..............................................................i
-xxxxxxxxxxxxldddjxxxxxxldddddddjxxxxxxlddddddddddddddjxxxxxxxxxlx..............................................................i
-xxxxxxxxxxxxldddjxxxxxxldddddddjxxxxxxlddddddddddddddjxxxxxxxxxlx..............................................................i
-xxxxxxxxxxxxldddnoooooopdddddddjxxxxxxlddddddddddddddjxxxxxxxxxlx..............................................................i
-xxxuvvvwxxxxlddddddzdddddddddddjxxxxxxlddddddddddddddjxxxxxxxxxlx..............................................................i
-xxxjxxxlxxxxlddddddzdddddddddddjxxxxxxlddddddddddddddjxxxxxxxxxlx..............................................................i
-xxxjxxxlxxxxxgggggcccccccccccggxxxxxxxxgggggggvwdddugxxxxxxxxxxxx..............................................................i
-xxxjxxxlxxxxxxxxxldddddddddddjxxxxxxxxxxxxxxxxxldddjdddddddddddxx..............................................................i
-noonooopooooooooopdddddddddddnooooooooooooooooopdddjdddddddddddxx..............................................................i
-xxxxxxdddddddddddddddddddddddddddddddddddddddddddddjdddddddddddxx..............................................................i
-xxxxxxddddddddddddddddzdddzddddddddddddddddddddddddjdddddddddddxx..............................................................i
-xxxxxxdddddddddddddddzzdddzzdddddddddddddddddddddddjdddddddddddxx..............................................................i
-kggggggggggggggggggggggvvvggggggggggggggggggggghdddjxxxxxxxxxxxxx..............................................................i
-xxxddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-xxxddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-xxxddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-xxxddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-yzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzxx..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-kddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx..............................................................i
-k..............................................................ik..............................................................i
+...............................................................kk
+...............................................................kk
+.....................................................r...q.....kk
+.....................................................kggggggggghx
+1.2..14.q...........qrq..............................jxxxxxxxddlx
+uvvvgggggh........kggggh.............................jxxxxxxxddlx
+xxxxxxxxxl........jxxoop.............................jxxxxxxxddlx
+xxxxxxxxxl........jxl.................z..............jxxxxxxxddlx
+xxxxxxxxxl.......rjxl.................z..............jxxxxxxxddlx
+uvvvvgggggggh...kgxxxggh...zz..uvgggggh..............jxxxxxxxddlx
+xxxxxxxxxxxxldddjxxxxxxldddddddjxxxxxxlddddddddddddddjxxxxxxxxxlx
+xxxxxxxxxxxxldddjxxxxxxldddddddjxxxxxxlddddddddddddddjxxxxxxxxxlx
+xxxxxxxxxxxxldddnoooooopdddddddjxxxxxxlddddddddddddddjxxxxxxxxxlx
+xxxuvvvwxxxxlddddddzdddddddddddjxxxxxxlddddddddddddddjxxxxxxxxxlx
+xxxjxxxlxxxxlddddddzdddddddddddjxxxxxxlddddddddddddddjxxxxxxxxxlx
+xxxjxxxlxxxxxgggggcccccccccccggxxxxxxxxgggggggvwdddugxxxxxxxxxxxx
+xxxjxxxlxxxxxxxxxldddddddddddjxxxxxxxxxxxxxxxxxldddjdddddddddddxx
+noonooopooooooooopdddddddddddnooooooooooooooooopdddjdddddddddddxx
+xxxddddddddddddddddddddddddddddddddddddddddddddddddjdddddddddddxx
+xxxdddddddddddddddddddzdddzddddddddddddddddddddddddjdddddddddddxx
+xxxddddddddddddddddddzzdddzzdddddddddddddddddddddddjdddddddddddxx
+kggggggggggggggggggggggvvvggggggggggggggggggggghdddjxxxxxxxxxxxxx
+xxxddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx
+xxxddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx
+xxxddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx
+xxxddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddxx
+yzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzxx
+
 
 

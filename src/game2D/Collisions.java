@@ -13,7 +13,9 @@ public class Collisions {
     public void setCollision(boolean collision) {
         this.collision = collision;
     }
-
+    /**
+     * Handle Tile Collision Between Sprite and tile map
+     */
     public void checkTileCollision(Sprite s, TileMap tmap) {
         collision = false;
         float sLeftDX = s.getX() + 5; // Shrink collision box
@@ -69,11 +71,16 @@ public class Collisions {
             }
         }
     }
+    // Returns True if a tile is solid
 
     private boolean isTileSolid(TileMap tmap, int col, int row) {
         Tile tile = tmap.getTile(col, row);
         return tile != null && tile.getCharacter() != '.' && tile.getCharacter() !='d';
     }
+    /**
+     * Handle  Collision Between Non-Playable and tile map.
+     * Reverses the scale and Speed of NPC Bouncing them off a solid wall
+     */
     public void checkTileCollisionNPC2(Sprite s, TileMap tmap) {
         boolean colide = false;
         float sLeftDX = s.getX()+5; // Shrink collision box
@@ -138,6 +145,10 @@ public class Collisions {
             s.setX(s.getX() + s.getVelocityX()); // Move normally if no collision
         }
     }
+    /**
+     * Handle Collision Between Bullets and tile map.
+     * Making any Projectile that hits a tile disappear!
+     */
     public void checkProjectileCollision(Sprite p, TileMap tmap) {
         if (p == null || !p.isActive()) return; // Avoid null pointer errors
 

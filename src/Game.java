@@ -66,7 +66,7 @@ public class Game extends GameCore {// Game constants
     long lastWalkSoundTime = 0;
     long deadSoundCooldown = 90000;
     long lastdeadSoundTime = 0;
-    long fireSoundCooldown = 9000;
+    long fireSoundCooldown = 2300;
     long lastfireSoundTime = 0;
     long slideSoundCooldown = 8000;
     long lastslideSoundTime = 0;
@@ -261,7 +261,7 @@ public class Game extends GameCore {// Game constants
         bossrun = new Animation();
         bossrun.loadAnimationFromSheet("images/bossrun.png", 8, 1, 150);
         bossdeath = new Animation();
-        bossdeath.loadAnimationFromSheet("images/bossrun.png", 10, 1, 150);
+        bossdeath.loadAnimationFromSheet("images/bossdeath.png", 10, 1, 150);
         bossdash = new Animation();
         bossdash.loadAnimationFromSheet("images/bossdash.png", 4, 1, 150);
 
@@ -383,7 +383,10 @@ public class Game extends GameCore {// Game constants
         torchHealth=100;
         villans.get(0).setPosition(590, 100);
         villans.get(1).setPosition(430, 200);
-        villans.get(2).setPosition(272,330);
+        villans.get(2).setPosition(600,330);
+        boss.setPosition(250,330);
+        boss.show();
+        boss.setScale(-1,1);
         for (int i = 0; i < villans.size(); i++){
 
             villans.get(i).setVelocity(-0.03f,0);
@@ -448,7 +451,7 @@ public class Game extends GameCore {// Game constants
         int xo = -(int)player.getX() + 200;
         int yo = -(int)player.getY() + 200;
 
-        g.setColor(Color.PINK);
+        g.setColor(Color.darkGray);
         g.fillRect(0, 0, getWidth(), getHeight());
 
         Background1.setOffsets(xo-50,yo-100);
@@ -606,6 +609,7 @@ public class Game extends GameCore {// Game constants
             WalkSoundCooldown = 750;
             box.setVelocityX(player.getVelocityX());
             player.setAnimationSpeed(0.6f);
+
             Sound slide = new Sound("sounds/sliding.wav");
             if (currentTime - lastslideSoundTime > slideSoundCooldown) {
 
@@ -700,6 +704,7 @@ public class Game extends GameCore {// Game constants
         collisions.checkTileCollisionNPC2(boss,tmap);
         if (projectile.isActive()&& collisions.boundingBoxCollision(projectile,boss)&&boss.isActive()) {
             projectile.deactivate();
+            backgroundMusic.setTempo(1f);
             boss.setAnimation(bossdeath);
             boss.setAnimationFrame(0);
             boss.setAnimationSpeed(1);
@@ -714,8 +719,9 @@ public class Game extends GameCore {// Game constants
         }
         float distanceboss = (float) Math.sqrt(Math.pow(player.getX() - boss.getX(), 2) + Math.pow(player.getY() - boss.getY(), 2));
         float distinY = boss.getY()-player.getY();
-        if(!projectile2.isActive()&&distanceboss>70&&distanceboss<200&&boss.isActive()) {
-
+        if(!projectile2.isActive()&&distanceboss>100&&player.getY()>261&&boss.isActive()) {
+            // change tempo of midi track
+            backgroundMusic.setTempo(2f);
             // Calculate the angle between the player and the mouse position in world coordinates
             double angle = Math.atan2((player.getY() - boss.getY())-15, player.getX() - boss.getX());
             float speed = projectileSpeed / 1.5f;
@@ -759,7 +765,7 @@ public class Game extends GameCore {// Game constants
 
             // Sound Effect
 
-            Sound firesound = new Sound("sounds/fire3.wav");
+            SoundFadeIn firesound = new SoundFadeIn("sounds/fire3.wav");
 
             if (currentTime - lastfireSoundTime > fireSoundCooldown&&distance<105) {
 
@@ -782,7 +788,7 @@ public class Game extends GameCore {// Game constants
         }
 
 
-        ideal = true;
+
 
         if(ideal&&isgettingDamaged==false){
             player.setAnimation(marinestanding);
@@ -790,7 +796,7 @@ public class Game extends GameCore {// Game constants
 
 
        	if(dead){
-               ideal=false;
+
             player.setAnimation(marinedie);
             Sound die = new Sound("sounds/die.wav");
             backgroundMusic.stop();
@@ -815,10 +821,10 @@ public class Game extends GameCore {// Game constants
         }
 
 
-       	if (flap&&isgettingDamaged==false)
+       	if (flap)
        	{
             if(collision) {
-                ideal =false;
+
                 Sound jumpSound = new Sound("sounds/jump5.wav");
                 jumpSound.start();
                 player.setVelocityY(fly);
@@ -826,7 +832,7 @@ public class Game extends GameCore {// Game constants
            }
 
          if(dash){
-             ideal =false;
+
                player.setAnimation(marinedash);
 
            }
@@ -835,15 +841,18 @@ public class Game extends GameCore {// Game constants
             if(!moveRight && !moveLeft) {
                 player.setAnimation(marineshoot);
                 player.setAnimationFrame(0);
-                ideal =false;
+
             }
          }
         // Check if the player is moving
         if (moveRight&& collision || moveLeft && collision) {
 
             if (currentTime - lastWalkSoundTime > WalkSoundCooldown) {
+
                 Sound snd = new Sound("sounds/walk.wav");
-                ideal =false;
+
+
+
                 if (!snd.isAlive()) {
                     snd.start();
                 }
@@ -1076,7 +1085,10 @@ public class Game extends GameCore {// Game constants
         if (e.getButton() == MouseEvent.BUTTON1 && !projectile.isActive()) { // Left mouse button
             torchHealth = torchHealth-20;
             Sound snd = new Sound("sounds/shoot.wav");
-            snd.start();
+            SoundEcho sndecho = new SoundEcho("sounds/shoot.wav");
+
+            if(player.getY()<200){snd.start();}
+            else sndecho.start(); // Add echo with 500ms delay and 0.5 decay
             // Get the mouse coordinates relative to the screen
             int screenMouseX = e.getX();
             int screenMouseY = e.getY();

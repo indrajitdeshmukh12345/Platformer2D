@@ -7,7 +7,7 @@ public class Sound extends Thread {
 
 	String filename;	// The name of the file to play
 	boolean finished;	// A flag showing that the thread has finished
-	
+
 	public Sound(String fname) {
 		filename = fname;
 		finished = false;
@@ -37,4 +37,5 @@ public class Sound extends Thread {
 		finished = true;
 
 	}
+
 }
